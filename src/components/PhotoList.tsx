@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { photoApi } from '../api/photoApi';
 import { config } from '../config/env';
+import { getImageUrl } from '../utils/getImageUrl';
 import type { Photo } from '../types/photo';
 
 interface PhotoListProps {
@@ -97,7 +98,7 @@ export const PhotoList = ({ onPhotoClick, refreshTrigger }: PhotoListProps) => {
               position: 'relative',
             }}>
               <img
-                src={photo.filePath}
+                src={getImageUrl(photo.filePath)}
                 alt={`Photo ${photo.id}`}
                 style={{
                   position: 'absolute',

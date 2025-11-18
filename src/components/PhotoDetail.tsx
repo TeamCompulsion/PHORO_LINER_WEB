@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { photoApi } from '../api/photoApi';
+import { getImageUrl } from '../utils/getImageUrl';
 import type { Photo, PhotoMarker } from '../types/photo';
 
 interface PhotoDetailProps {
@@ -109,7 +110,7 @@ export const PhotoDetail = ({ photo, onClose, onUpdate }: PhotoDetailProps) => {
           </div>
 
           <img
-            src={photo.filePath}
+            src={getImageUrl(photo.filePath)}
             alt={`Photo ${photo.id}`}
             style={{
               width: '100%',
