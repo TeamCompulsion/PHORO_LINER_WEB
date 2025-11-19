@@ -12,6 +12,7 @@ export const MainPage = () => {
   const [photoMarkers, setPhotoMarkers] = useState<PhotoMarker[]>([]);
   const [poiMarkers, setPoiMarkers] = useState<PoiMarker[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | PhotoMarker | null>(null);
+  const [locationEditPhoto, setLocationEditPhoto] = useState<Photo | PhotoMarker | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
   const [dateRange, setDateRange] = useState({
@@ -59,6 +60,32 @@ export const MainPage = () => {
     loadMarkers();
   };
 
+  const handleStartLocationEdit = (photo: Photo | PhotoMarker) => {
+    setLocationEditPhoto(photo);
+  };
+
+  const handleCancelLocationEdit = () => {
+    setLocationEditPhoto(null);
+  };
+
+  const handleSaveLocation = async (lat: number, lng: number) => {
+    if (!locationEditPhoto) return;
+
+    try {
+      await photoApi.updateLocation(locationEditPhoto.id, {
+        latitude: lat,
+        longitude: lng,
+      });
+      alert('위치 정보가 업데이트되었습니다.');
+      setLocationEditPhoto(null);
+      setRefreshTrigger((prev) => prev + 1);
+      loadMarkers();
+    } catch (error) {
+      console.error(error);
+      alert('업데이트에 실패했습니다.');
+    }
+  };
+
   return (
     <div style={{
       display: 'flex',
@@ -99,6 +126,9 @@ export const MainPage = () => {
           poiMarkers={poiMarkers}
           onMapBoundsChange={handleMapBoundsChange}
           onPhotoMarkerClick={setSelectedPhoto}
+          locationEditPhoto={locationEditPhoto}
+          onSaveLocation={handleSaveLocation}
+          onCancelLocationEdit={handleCancelLocationEdit}
         />
 
         <div style={{
@@ -121,6 +151,7 @@ export const MainPage = () => {
         photo={selectedPhoto}
         onClose={() => setSelectedPhoto(null)}
         onUpdate={handlePhotoUpdate}
+        onStartLocationEdit={handleStartLocationEdit}
       />
     </div>
   );

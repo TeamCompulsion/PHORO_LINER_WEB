@@ -7,15 +7,14 @@ interface PhotoDetailProps {
   photo: Photo | PhotoMarker | null;
   onClose: () => void;
   onUpdate?: () => void;
+  onStartLocationEdit?: (photo: Photo | PhotoMarker) => void;
 }
 
-type EditMode = 'none' | 'date' | 'location';
+type EditMode = 'none' | 'date';
 
-export const PhotoDetail = ({ photo, onClose, onUpdate }: PhotoDetailProps) => {
+export const PhotoDetail = ({ photo, onClose, onUpdate, onStartLocationEdit }: PhotoDetailProps) => {
   const [editMode, setEditMode] = useState<EditMode>('none');
   const [capturedDt, setCapturedDt] = useState('');
-  const [latitude, setLatitude] = useState('');
-  const [longitude, setLongitude] = useState('');
 
   if (!photo) return null;
 
@@ -25,16 +24,8 @@ export const PhotoDetail = ({ photo, onClose, onUpdate }: PhotoDetailProps) => {
   };
 
   const handleEditLocation = () => {
-    setEditMode('location');
-
-    // lat, lng를 우선 사용하고, 없으면 latitude, longitude 사용
-    if (photo.lat != null && photo.lng != null) {
-      setLatitude(photo.lat.toString());
-      setLongitude(photo.lng.toString());
-    } else if (photo.latitude != null && photo.longitude != null) {
-      setLatitude(photo.latitude.toString());
-      setLongitude(photo.longitude.toString());
-    }
+    onStartLocationEdit?.(photo);
+    onClose();
   };
 
   const handleSaveDate = async () => {
@@ -42,30 +33,6 @@ export const PhotoDetail = ({ photo, onClose, onUpdate }: PhotoDetailProps) => {
       if (capturedDt && capturedDt !== photo.capturedDt) {
         await photoApi.updateCapturedDate(photo.id, { capturedDt });
         alert('촬영 날짜가 업데이트되었습니다.');
-        setEditMode('none');
-        onUpdate?.();
-      }
-    } catch (error) {
-      console.error(error);
-      alert('업데이트에 실패했습니다.');
-    }
-  };
-
-  const handleSaveLocation = async () => {
-    try {
-      const lat = parseFloat(latitude);
-      const lng = parseFloat(longitude);
-
-      // lat, lng를 우선 사용하고, 없으면 latitude, longitude 사용
-      const currentLat = photo.lat != null ? photo.lat : photo.latitude;
-      const currentLng = photo.lng != null ? photo.lng : photo.longitude;
-
-      if (!isNaN(lat) && !isNaN(lng) && (lat !== currentLat || lng !== currentLng)) {
-        await photoApi.updateLocation(photo.id, {
-          latitude: lat,
-          longitude: lng,
-        });
-        alert('위치 정보가 업데이트되었습니다.');
         setEditMode('none');
         onUpdate?.();
       }
@@ -186,7 +153,7 @@ export const PhotoDetail = ({ photo, onClose, onUpdate }: PhotoDetailProps) => {
                 위치 수정
               </button>
             </div>
-          ) : editMode === 'date' ? (
+          ) : (
             <div>
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>
@@ -212,80 +179,6 @@ export const PhotoDetail = ({ photo, onClose, onUpdate }: PhotoDetailProps) => {
                   style={{
                     padding: '10px 20px',
                     backgroundColor: '#4285f4',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    marginRight: '10px',
-                  }}
-                >
-                  저장
-                </button>
-                <button
-                  onClick={() => setEditMode('none')}
-                  style={{
-                    padding: '10px 20px',
-                    backgroundColor: '#9e9e9e',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  취소
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div>
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>
-                  위도:
-                </label>
-                <input
-                  type="number"
-                  step="0.000001"
-                  value={latitude}
-                  onChange={(e) => setLatitude(e.target.value)}
-                  placeholder="37.5665"
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                  }}
-                />
-              </div>
-
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>
-                  경도:
-                </label>
-                <input
-                  type="number"
-                  step="0.000001"
-                  value={longitude}
-                  onChange={(e) => setLongitude(e.target.value)}
-                  placeholder="126.9780"
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                  }}
-                />
-              </div>
-
-              <div>
-                <button
-                  onClick={handleSaveLocation}
-                  style={{
-                    padding: '10px 20px',
-                    backgroundColor: '#34a853',
                     color: 'white',
                     border: 'none',
                     borderRadius: '4px',
