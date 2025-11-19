@@ -7,7 +7,8 @@
       "Bash(curl:*)",
       "Bash(npm run dev:*)",
       "Bash(timeout /t 3:*)",
-      "Bash(nul)"
+      "Bash(nul)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []
