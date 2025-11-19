@@ -293,8 +293,12 @@ export const NaverMap = ({
     if (!map || !isLoaded || !locationEditPhoto) return;
 
     // 사진의 위치로 지도 이동
-    const lat = locationEditPhoto.lat != null ? locationEditPhoto.lat : locationEditPhoto.latitude;
-    const lng = locationEditPhoto.lng != null ? locationEditPhoto.lng : locationEditPhoto.longitude;
+    const lat = 'lat' in locationEditPhoto && locationEditPhoto.lat != null
+      ? locationEditPhoto.lat
+      : 'latitude' in locationEditPhoto ? locationEditPhoto.latitude : undefined;
+    const lng = 'lng' in locationEditPhoto && locationEditPhoto.lng != null
+      ? locationEditPhoto.lng
+      : 'longitude' in locationEditPhoto ? locationEditPhoto.longitude : undefined;
 
     if (lat != null && lng != null) {
       map.setCenter(new window.naver.maps.LatLng(lat, lng));
@@ -303,7 +307,7 @@ export const NaverMap = ({
 
     // 지도 이동 시 중앙 좌표 업데이트
     const listener = window.naver.maps.Event.addListener(map, 'center_changed', () => {
-      const center = map.getCenter();
+      const center = map.getCenter() as naver.maps.LatLng;
       setCurrentCenter({ lat: center.lat(), lng: center.lng() });
     });
 

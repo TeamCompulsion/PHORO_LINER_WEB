@@ -10,7 +10,7 @@ interface MarkerClusteringOptions {
   icons?: any[];
   indexGenerator?: number[];
   averageCenter?: boolean;
-  stylingFunction?: (clusterMarker: naver.maps.Marker, count: number) => void;
+  stylingFunction?: (clusterMarker: naver.maps.Marker, count: number, cluster: any) => void;
 }
 
 declare class MarkerClustering {
@@ -36,8 +36,8 @@ declare class MarkerClustering {
   setIndexGenerator(indexGenerator: number[]): void;
   getAverageCenter(): boolean;
   setAverageCenter(averageCenter: boolean): void;
-  getStylingFunction(): (clusterMarker: naver.maps.Marker, count: number) => void;
-  setStylingFunction(func: (clusterMarker: naver.maps.Marker, count: number) => void): void;
+  getStylingFunction(): (clusterMarker: naver.maps.Marker, count: number, cluster: any) => void;
+  setStylingFunction(func: (clusterMarker: naver.maps.Marker, count: number, cluster: any) => void): void;
 }
 
 declare global {

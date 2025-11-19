@@ -114,9 +114,9 @@ export const PhotoDetail = ({ photo, onClose, onUpdate, onStartLocationEdit }: P
               </div>
               <div style={{ marginBottom: '12px' }}>
                 <strong>위치:</strong>{' '}
-                {photo.lat != null && photo.lng != null
+                {'lat' in photo && photo.lat != null && photo.lng != null
                   ? `${photo.lat.toFixed(6)}, ${photo.lng.toFixed(6)}`
-                  : photo.latitude != null && photo.longitude != null
+                  : 'latitude' in photo && photo.latitude != null && photo.longitude != null
                   ? `${photo.latitude.toFixed(6)}, ${photo.longitude.toFixed(6)}`
                   : '없음'}
               </div>
