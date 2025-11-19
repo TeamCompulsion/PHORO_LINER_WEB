@@ -33,7 +33,7 @@ export const NaverMap = ({
 }: NaverMapProps) => {
   const { mapRef, map, isLoaded, error } = useNaverMap({ center, zoom });
   const markersRef = useRef<naver.maps.Marker[]>([]);
-  const clusteringRef = useRef<MarkerClustering | null>(null);
+  const clusteringRef = useRef<InstanceType<typeof window.MarkerClustering> | null>(null);
   const [currentCenter, setCurrentCenter] = useState<{ lat: number; lng: number } | null>(null);
 
   // 마커 클리어
