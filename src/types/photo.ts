@@ -5,6 +5,8 @@ export interface Photo {
   userId: number;
   latitude?: number;
   longitude?: number;
+  lat?: number;
+  lng?: number;
 }
 
 export interface PhotoMarker {

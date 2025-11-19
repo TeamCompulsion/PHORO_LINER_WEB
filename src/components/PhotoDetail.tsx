@@ -21,10 +21,11 @@ export const PhotoDetail = ({ photo, onClose, onUpdate }: PhotoDetailProps) => {
     setEditing(true);
     setCapturedDt(photo.capturedDt || '');
 
-    if ('lat' in photo) {
+    // lat, lng를 우선 사용하고, 없으면 latitude, longitude 사용
+    if (photo.lat != null && photo.lng != null) {
       setLatitude(photo.lat.toString());
       setLongitude(photo.lng.toString());
-    } else if (photo.latitude && photo.longitude) {
+    } else if (photo.latitude != null && photo.longitude != null) {
       setLatitude(photo.latitude.toString());
       setLongitude(photo.longitude.toString());
     }
@@ -41,8 +42,9 @@ export const PhotoDetail = ({ photo, onClose, onUpdate }: PhotoDetailProps) => {
       const lat = parseFloat(latitude);
       const lng = parseFloat(longitude);
 
-      const currentLat = 'lat' in photo ? photo.lat : photo.latitude;
-      const currentLng = 'lng' in photo ? photo.lng : photo.longitude;
+      // lat, lng를 우선 사용하고, 없으면 latitude, longitude 사용
+      const currentLat = photo.lat != null ? photo.lat : photo.latitude;
+      const currentLng = photo.lng != null ? photo.lng : photo.longitude;
 
       if (!isNaN(lat) && !isNaN(lng) && (lat !== currentLat || lng !== currentLng)) {
         await photoApi.updateLocation(photo.id, {
@@ -132,9 +134,9 @@ export const PhotoDetail = ({ photo, onClose, onUpdate }: PhotoDetailProps) => {
               </div>
               <div style={{ marginBottom: '12px' }}>
                 <strong>위치:</strong>{' '}
-                {'lat' in photo && photo.lat && photo.lng
+                {photo.lat != null && photo.lng != null
                   ? `${photo.lat.toFixed(6)}, ${photo.lng.toFixed(6)}`
-                  : 'latitude' in photo && photo.latitude && photo.longitude
+                  : photo.latitude != null && photo.longitude != null
                   ? `${photo.latitude.toFixed(6)}, ${photo.longitude.toFixed(6)}`
                   : '없음'}
               </div>
