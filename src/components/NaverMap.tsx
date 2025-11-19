@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNaverMap } from '../hooks/useNaverMap';
 import type { PhotoMarker, PoiMarker, Photo } from '../types/photo';
+import { getImageUrl } from '../utils/getImageUrl';
 
 interface NaverMapProps {
   center?: { lat: number; lng: number };
@@ -48,6 +49,8 @@ export const NaverMap = ({
 
     // 사진 마커 추가
     photoMarkers.forEach((photo) => {
+      const imageUrl = getImageUrl(photo.filePath);
+
       const marker = new window.naver.maps.Marker({
         position: new window.naver.maps.LatLng(photo.lat, photo.lng),
         map,
@@ -55,25 +58,29 @@ export const NaverMap = ({
         icon: {
           content: `
             <div style="
-              width: 40px;
-              height: 40px;
-              border-radius: 50%;
-              background-color: #4285f4;
+              width: 90px;
+              height: 90px;
+              border-radius: 8px;
+              overflow: hidden;
               border: 3px solid white;
-              box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+              box-shadow: 0 3px 8px rgba(0,0,0,0.35);
               cursor: pointer;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              color: white;
-              font-weight: bold;
-              font-size: 18px;
+              background-color: #f0f0f0;
             ">
-              📷
+              <img
+                src="${imageUrl}"
+                alt="photo"
+                style="
+                  width: 100%;
+                  height: 100%;
+                  object-fit: cover;
+                "
+                onerror="this.parentElement.innerHTML='<div style=\\"width:100%;height:100%;display:flex;align-items:center;justify-content:center;background-color:#4285f4;color:white;font-size:36px;\\">📷</div>'"
+              />
             </div>
           `,
-          size: new window.naver.maps.Size(40, 40),
-          anchor: new window.naver.maps.Point(20, 20),
+          size: new window.naver.maps.Size(90, 90),
+          anchor: new window.naver.maps.Point(45, 45),
         },
       });
 
