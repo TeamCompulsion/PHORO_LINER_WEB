@@ -32,8 +32,8 @@ export const PhotoList = ({ onPhotoClick, refreshTrigger }: PhotoListProps) => {
         size: PAGE_SIZE,
       });
       setPhotos(response.photos);
-      setTotalCount(response.count);
-      setTotalPages(response.totalPages || Math.ceil(response.count / PAGE_SIZE));
+      setTotalCount(response.pageInfo.totalElements);
+      setTotalPages(response.pageInfo.totalPages);
       setSelectedPhotoIds(new Set()); // Clear selection after reload
     } catch (err) {
       setError('사진 목록을 불러오는데 실패했습니다.');

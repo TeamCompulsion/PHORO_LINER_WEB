@@ -39,12 +39,18 @@ export interface MapMarkersResponse {
   innerPoiMarkers: PoiMarkersGroup;
 }
 
+export interface PageInfo {
+  totalElements: number;
+  totalPages: number;
+  currentPage: number;
+  size: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
 export interface PhotosResponse {
-  count: number;
   photos: Photo[];
-  page?: number;
-  size?: number;
-  totalPages?: number;
+  pageInfo: PageInfo;
 }
 
 export interface PhotoListParams {
