@@ -33,63 +33,204 @@ export const NaverMap = ({
 }: NaverMapProps) => {
   const { mapRef, map, isLoaded, error } = useNaverMap({ center, zoom });
   const markersRef = useRef<naver.maps.Marker[]>([]);
+  const clusteringRef = useRef<MarkerClustering | null>(null);
   const [currentCenter, setCurrentCenter] = useState<{ lat: number; lng: number } | null>(null);
 
   // 마커 클리어
   const clearMarkers = () => {
     markersRef.current.forEach((marker) => marker.setMap(null));
     markersRef.current = [];
+    if (clusteringRef.current) {
+      clusteringRef.current.setMap(null);
+      clusteringRef.current = null;
+    }
   };
 
-  // 사진 마커 추가
+  // 클러스터 아이콘 HTML 생성 (카드 형태)
+  const createClusterIcon = (size: number) => {
+    return {
+      content: `
+        <div class="cluster-card" style="
+          width: ${size}px;
+          height: ${size}px;
+          border-radius: 12px;
+          background-color: white;
+          border: 3px solid #4285f4;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+          overflow: hidden;
+          cursor: pointer;
+          display: flex;
+          flex-direction: column;
+        ">
+          <div class="cluster-image" style="
+            flex: 1;
+            background-color: #f0f0f0;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+          "></div>
+          <div class="cluster-count" style="
+            height: ${size / 4}px;
+            background-color: #4285f4;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: ${size / 5}px;
+          "></div>
+        </div>
+      `,
+      size: new window.naver.maps.Size(size, size),
+      anchor: new window.naver.maps.Point(size / 2, size / 2),
+    };
+  };
+
+  // 사진 마커 추가 (클러스터링 포함)
   useEffect(() => {
-    if (!map || !isLoaded) return;
+    if (!map || !isLoaded || !window.MarkerClustering) return;
 
     clearMarkers();
 
-    // 사진 마커 추가
-    photoMarkers.forEach((photo) => {
-      const imageUrl = getImageUrl(photo.filePath);
+    // 위치 수정 모드일 때는 클러스터링 없이 일반 마커만 표시
+    if (locationEditPhoto) {
+      // 사진 마커 추가 (클러스터링 없음)
+      photoMarkers.forEach((photo) => {
+        const imageUrl = getImageUrl(photo.filePath);
 
-      const marker = new window.naver.maps.Marker({
-        position: new window.naver.maps.LatLng(photo.lat, photo.lng),
+        const marker = new window.naver.maps.Marker({
+          position: new window.naver.maps.LatLng(photo.lat, photo.lng),
+          map,
+          title: photo.capturedDt,
+          icon: {
+            content: `
+              <div style="
+                width: 90px;
+                height: 90px;
+                border-radius: 8px;
+                overflow: hidden;
+                border: 3px solid white;
+                box-shadow: 0 3px 8px rgba(0,0,0,0.35);
+                cursor: pointer;
+                background-color: #f0f0f0;
+              ">
+                <img
+                  src="${imageUrl}"
+                  alt="photo"
+                  style="
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                  "
+                  onerror="this.parentElement.innerHTML='<div style=&quot;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background-color:#4285f4;color:white;font-size:36px;&quot;>📷</div>'"
+                />
+              </div>
+            `,
+            size: new window.naver.maps.Size(90, 90),
+            anchor: new window.naver.maps.Point(45, 45),
+          },
+        });
+
+        window.naver.maps.Event.addListener(marker, 'click', () => {
+          onPhotoMarkerClick?.(photo);
+        });
+
+        markersRef.current.push(marker);
+      });
+    } else {
+      // 클러스터링 모드: photoMarkers를 클러스터링으로 관리
+      const markers = photoMarkers.map((photo) => {
+        const imageUrl = getImageUrl(photo.filePath);
+
+        const marker = new window.naver.maps.Marker({
+          position: new window.naver.maps.LatLng(photo.lat, photo.lng),
+          title: photo.capturedDt,
+          icon: {
+            content: `
+              <div style="
+                width: 90px;
+                height: 90px;
+                border-radius: 8px;
+                overflow: hidden;
+                border: 3px solid white;
+                box-shadow: 0 3px 8px rgba(0,0,0,0.35);
+                cursor: pointer;
+                background-color: #f0f0f0;
+              ">
+                <img
+                  src="${imageUrl}"
+                  alt="photo"
+                  style="
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                  "
+                  onerror="this.parentElement.innerHTML='<div style=&quot;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background-color:#4285f4;color:white;font-size:36px;&quot;>📷</div>'"
+                />
+              </div>
+            `,
+            size: new window.naver.maps.Size(90, 90),
+            anchor: new window.naver.maps.Point(45, 45),
+          },
+        });
+
+        // 마커에 photo 데이터 저장
+        (marker as any).photoData = photo;
+
+        window.naver.maps.Event.addListener(marker, 'click', () => {
+          onPhotoMarkerClick?.(photo);
+        });
+
+        return marker;
+      });
+
+      // 클러스터 아이콘 배열 (카드 형태)
+      const clusterIcons = [
+        createClusterIcon(80),   // 10개 미만
+        createClusterIcon(90),   // 10~100개
+        createClusterIcon(100),  // 100~200개
+        createClusterIcon(110),  // 200~500개
+        createClusterIcon(120),  // 500개 이상
+      ];
+
+      // MarkerClustering 초기화
+      clusteringRef.current = new window.MarkerClustering({
         map,
-        title: photo.capturedDt,
-        icon: {
-          content: `
-            <div style="
-              width: 90px;
-              height: 90px;
-              border-radius: 8px;
-              overflow: hidden;
-              border: 3px solid white;
-              box-shadow: 0 3px 8px rgba(0,0,0,0.35);
-              cursor: pointer;
-              background-color: #f0f0f0;
-            ">
-              <img
-                src="${imageUrl}"
-                alt="photo"
-                style="
-                  width: 100%;
-                  height: 100%;
-                  object-fit: cover;
-                "
-                onerror="this.parentElement.innerHTML='<div style=&quot;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background-color:#4285f4;color:white;font-size:36px;&quot;>📷</div>'"
-              />
-            </div>
-          `,
-          size: new window.naver.maps.Size(90, 90),
-          anchor: new window.naver.maps.Point(45, 45),
+        markers,
+        disableClickZoom: false,
+        minClusterSize: 2,
+        maxZoom: 18,
+        gridSize: 120,
+        icons: clusterIcons,
+        indexGenerator: [10, 100, 200, 500, 1000],
+        averageCenter: true,
+        stylingFunction: (clusterMarker: any, count: number, cluster: any) => {
+          const element = clusterMarker.getElement();
+          if (element) {
+            // 개수 업데이트
+            const countElement = element.querySelector('.cluster-count');
+            if (countElement) {
+              countElement.textContent = `${count}개`;
+            }
+
+            // 대표 이미지 업데이트
+            const imageElement = element.querySelector('.cluster-image');
+            if (imageElement && cluster) {
+              const clusterMembers = cluster.getClusterMember();
+              if (clusterMembers && clusterMembers.length > 0) {
+                // 첫 번째 마커의 사진 데이터 가져오기
+                const firstMarker = clusterMembers[0];
+                const photoData = (firstMarker as any).photoData;
+                if (photoData) {
+                  const imageUrl = getImageUrl(photoData.filePath);
+                  (imageElement as HTMLElement).style.backgroundImage = `url(${imageUrl})`;
+                }
+              }
+            }
+          }
         },
       });
-
-      window.naver.maps.Event.addListener(marker, 'click', () => {
-        onPhotoMarkerClick?.(photo);
-      });
-
-      markersRef.current.push(marker);
-    });
+    }
 
     // POI 마커 추가 (날짜 범위 외 사진)
     poiMarkers.forEach((poi) => {
@@ -123,7 +264,7 @@ export const NaverMap = ({
 
       markersRef.current.push(marker);
     });
-  }, [map, isLoaded, photoMarkers, poiMarkers, onPhotoMarkerClick]);
+  }, [map, isLoaded, photoMarkers, poiMarkers, onPhotoMarkerClick, locationEditPhoto]);
 
   // 지도 범위 변경 이벤트
   useEffect(() => {

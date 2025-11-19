@@ -35,9 +35,24 @@ export const loadNaverMaps = (): Promise<void> => {
     script.async = true;
 
     script.onload = () => {
-      isLoaded = true;
-      isLoading = false;
-      resolve();
+      // Naver Maps SDK 로드 후 MarkerClustering 라이브러리 로드
+      const clusteringScript = document.createElement('script');
+      clusteringScript.type = 'text/javascript';
+      clusteringScript.src = '/MarkerClustering.js';
+      clusteringScript.async = true;
+
+      clusteringScript.onload = () => {
+        isLoaded = true;
+        isLoading = false;
+        resolve();
+      };
+
+      clusteringScript.onerror = () => {
+        isLoading = false;
+        reject(new Error('Failed to load MarkerClustering library'));
+      };
+
+      document.head.appendChild(clusteringScript);
     };
 
     script.onerror = () => {
