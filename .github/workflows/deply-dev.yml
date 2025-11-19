@@ -2,7 +2,7 @@ name: Deploy via SSH (PEM Key)
 
 on:
   push:
-    branches: ["main"] # main 브랜치 푸시 시 실행
+    branches: ["develop"] # develop 브랜치 푸시 시 실행
 
 jobs:
   deploy:
