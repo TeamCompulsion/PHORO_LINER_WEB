@@ -1,0 +1,46 @@
+name: Deploy via SSH (PEM Key)
+
+on:
+  push:
+    branches: ["main"] # main 브랜치 푸시 시 실행
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 소스 코드 내려받기
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      # 2. Node.js 환경 설정
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # 3. 의존성 설치
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. React 빌드 (dist 폴더 생성)
+      - name: Build project
+        run: npm run build
+
+      # 5. SCP로 파일 전송 (PEM 키 사용)
+      - name: Deploy to Server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          # 전송할 파일: dist 폴더 내부의 모든 것
+          source: "dist/*"
+          # 서버의 타겟 경로 (본인 서버 환경에 맞게 수정 필수!)
+          # 예: Nginx 기본 경로는 /var/www/html 인 경우가 많음
+          target: "/var/www/html/my-react-app"
+          # 소스 경로에서 'dist'라는 폴더 구조는 벗겨내고 내용물만 전송
+          strip_components: 1
+          # (선택) 파일 덮어쓰기 설정
+          overwrite: true
