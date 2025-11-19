@@ -1,6 +1,7 @@
 import { apiClient } from './client';
 import type {
   PhotosResponse,
+  PhotoListParams,
   MapMarkersResponse,
   PhotoUploadResponse,
   MapBounds,
@@ -12,9 +13,13 @@ import type {
 
 export const photoApi = {
   // GET /api/v1/photos - 사진 목록 조회
-  getPhotos: async (userId: number): Promise<PhotosResponse> => {
+  getPhotos: async (params: PhotoListParams): Promise<PhotosResponse> => {
     const response = await apiClient.get<PhotosResponse>('/photos', {
-      params: { userId },
+      params: {
+        userId: params.userId,
+        ...(params.page !== undefined && { page: params.page }),
+        ...(params.size !== undefined && { size: params.size }),
+      },
     });
     return response.data;
   },

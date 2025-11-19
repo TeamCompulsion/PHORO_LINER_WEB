@@ -9,20 +9,31 @@ interface PhotoListProps {
   refreshTrigger?: number;
 }
 
+const PAGE_SIZE = 20;
+
 export const PhotoList = ({ onPhotoClick, refreshTrigger }: PhotoListProps) => {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<number>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   const loadPhotos = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await photoApi.getPhotos(config.defaultUserId);
+      const response = await photoApi.getPhotos({
+        userId: config.defaultUserId,
+        page: currentPage,
+        size: PAGE_SIZE,
+      });
       setPhotos(response.photos);
+      setTotalCount(response.count);
+      setTotalPages(response.totalPages || Math.ceil(response.count / PAGE_SIZE));
       setSelectedPhotoIds(new Set()); // Clear selection after reload
     } catch (err) {
       setError('사진 목록을 불러오는데 실패했습니다.');
@@ -34,7 +45,7 @@ export const PhotoList = ({ onPhotoClick, refreshTrigger }: PhotoListProps) => {
 
   useEffect(() => {
     loadPhotos();
-  }, [refreshTrigger]);
+  }, [refreshTrigger, currentPage]);
 
   const togglePhotoSelection = (photoId: number, event: React.MouseEvent) => {
     event.stopPropagation();
@@ -104,6 +115,16 @@ export const PhotoList = ({ onPhotoClick, refreshTrigger }: PhotoListProps) => {
     );
   }
 
+  const getCoordinateText = (photo: Photo): string => {
+    const lat = photo.latitude ?? photo.lat;
+    const lng = photo.longitude ?? photo.lng;
+
+    if (typeof lat === 'number' && typeof lng === 'number') {
+      return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    }
+    return '좌표 없음';
+  };
+
   return (
     <div style={{
       padding: '20px',
@@ -111,7 +132,14 @@ export const PhotoList = ({ onPhotoClick, refreshTrigger }: PhotoListProps) => {
       borderRadius: '8px',
       boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
     }}>
-      <h3 style={{ marginTop: 0 }}>사진 목록 ({photos.length})</h3>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <h3 style={{ margin: 0 }}>사진 목록 (전체: {totalCount}개)</h3>
+        {totalPages > 0 && (
+          <div style={{ fontSize: '14px', color: '#666' }}>
+            {currentPage + 1} / {totalPages} 페이지
+          </div>
+        )}
+      </div>
 
       {/* Control bar */}
       <div style={{
@@ -242,12 +270,96 @@ export const PhotoList = ({ onPhotoClick, refreshTrigger }: PhotoListProps) => {
                 }}
               />
             </div>
-            <div style={{ padding: '8px', fontSize: '12px', color: '#666' }}>
-              {photo.capturedDt ? new Date(photo.capturedDt).toLocaleDateString() : '날짜 없음'}
+            <div style={{ padding: '8px', fontSize: '11px', color: '#666', lineHeight: '1.4' }}>
+              <div style={{ marginBottom: '4px' }}>
+                {photo.capturedDt ? new Date(photo.capturedDt).toLocaleDateString() : '날짜 없음'}
+              </div>
+              <div style={{ fontSize: '10px', color: '#999', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {getCoordinateText(photo)}
+              </div>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '8px',
+          marginTop: '24px',
+          paddingTop: '16px',
+          borderTop: '1px solid #e0e0e0',
+        }}>
+          <button
+            onClick={() => setCurrentPage(0)}
+            disabled={currentPage === 0}
+            style={{
+              padding: '8px 12px',
+              backgroundColor: currentPage === 0 ? '#f5f5f5' : '#1976d2',
+              color: currentPage === 0 ? '#999' : 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: currentPage === 0 ? 'not-allowed' : 'pointer',
+              fontSize: '14px',
+            }}
+          >
+            처음
+          </button>
+          <button
+            onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+            disabled={currentPage === 0}
+            style={{
+              padding: '8px 12px',
+              backgroundColor: currentPage === 0 ? '#f5f5f5' : '#1976d2',
+              color: currentPage === 0 ? '#999' : 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: currentPage === 0 ? 'not-allowed' : 'pointer',
+              fontSize: '14px',
+            }}
+          >
+            이전
+          </button>
+
+          <span style={{ padding: '0 16px', fontSize: '14px', fontWeight: '500' }}>
+            {currentPage + 1} / {totalPages}
+          </span>
+
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+            disabled={currentPage >= totalPages - 1}
+            style={{
+              padding: '8px 12px',
+              backgroundColor: currentPage >= totalPages - 1 ? '#f5f5f5' : '#1976d2',
+              color: currentPage >= totalPages - 1 ? '#999' : 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: currentPage >= totalPages - 1 ? 'not-allowed' : 'pointer',
+              fontSize: '14px',
+            }}
+          >
+            다음
+          </button>
+          <button
+            onClick={() => setCurrentPage(totalPages - 1)}
+            disabled={currentPage >= totalPages - 1}
+            style={{
+              padding: '8px 12px',
+              backgroundColor: currentPage >= totalPages - 1 ? '#f5f5f5' : '#1976d2',
+              color: currentPage >= totalPages - 1 ? '#999' : 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: currentPage >= totalPages - 1 ? 'not-allowed' : 'pointer',
+              fontSize: '14px',
+            }}
+          >
+            마지막
+          </button>
+        </div>
+      )}
     </div>
   );
 };

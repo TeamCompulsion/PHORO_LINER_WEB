@@ -42,6 +42,15 @@ export interface MapMarkersResponse {
 export interface PhotosResponse {
   count: number;
   photos: Photo[];
+  page?: number;
+  size?: number;
+  totalPages?: number;
+}
+
+export interface PhotoListParams {
+  userId: number;
+  page?: number;
+  size?: number;
 }
 
 export interface PhotoUploadItem {
