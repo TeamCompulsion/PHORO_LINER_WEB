@@ -9,17 +9,23 @@ interface PhotoDetailProps {
   onUpdate?: () => void;
 }
 
+type EditMode = 'none' | 'date' | 'location';
+
 export const PhotoDetail = ({ photo, onClose, onUpdate }: PhotoDetailProps) => {
-  const [editing, setEditing] = useState(false);
+  const [editMode, setEditMode] = useState<EditMode>('none');
   const [capturedDt, setCapturedDt] = useState('');
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
 
   if (!photo) return null;
 
-  const handleEdit = () => {
-    setEditing(true);
+  const handleEditDate = () => {
+    setEditMode('date');
     setCapturedDt(photo.capturedDt || '');
+  };
+
+  const handleEditLocation = () => {
+    setEditMode('location');
 
     // lat, lng를 우선 사용하고, 없으면 latitude, longitude 사용
     if (photo.lat != null && photo.lng != null) {
@@ -31,14 +37,22 @@ export const PhotoDetail = ({ photo, onClose, onUpdate }: PhotoDetailProps) => {
     }
   };
 
-  const handleSave = async () => {
+  const handleSaveDate = async () => {
     try {
-      // 날짜 업데이트
       if (capturedDt && capturedDt !== photo.capturedDt) {
         await photoApi.updateCapturedDate(photo.id, { capturedDt });
+        alert('촬영 날짜가 업데이트되었습니다.');
+        setEditMode('none');
+        onUpdate?.();
       }
+    } catch (error) {
+      console.error(error);
+      alert('업데이트에 실패했습니다.');
+    }
+  };
 
-      // 위치 업데이트
+  const handleSaveLocation = async () => {
+    try {
       const lat = parseFloat(latitude);
       const lng = parseFloat(longitude);
 
@@ -51,11 +65,10 @@ export const PhotoDetail = ({ photo, onClose, onUpdate }: PhotoDetailProps) => {
           latitude: lat,
           longitude: lng,
         });
+        alert('위치 정보가 업데이트되었습니다.');
+        setEditMode('none');
+        onUpdate?.();
       }
-
-      alert('사진 정보가 업데이트되었습니다.');
-      setEditing(false);
-      onUpdate?.();
     } catch (error) {
       console.error(error);
       alert('업데이트에 실패했습니다.');
@@ -126,7 +139,7 @@ export const PhotoDetail = ({ photo, onClose, onUpdate }: PhotoDetailProps) => {
             }}
           />
 
-          {!editing ? (
+          {editMode === 'none' ? (
             <div>
               <div style={{ marginBottom: '12px' }}>
                 <strong>촬영 날짜:</strong>{' '}
@@ -142,7 +155,7 @@ export const PhotoDetail = ({ photo, onClose, onUpdate }: PhotoDetailProps) => {
               </div>
 
               <button
-                onClick={handleEdit}
+                onClick={handleEditDate}
                 style={{
                   padding: '10px 20px',
                   backgroundColor: '#4285f4',
@@ -155,10 +168,25 @@ export const PhotoDetail = ({ photo, onClose, onUpdate }: PhotoDetailProps) => {
                   marginRight: '10px',
                 }}
               >
-                수정
+                날짜 수정
+              </button>
+              <button
+                onClick={handleEditLocation}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#34a853',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                }}
+              >
+                위치 수정
               </button>
             </div>
-          ) : (
+          ) : editMode === 'date' ? (
             <div>
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>
@@ -178,6 +206,42 @@ export const PhotoDetail = ({ photo, onClose, onUpdate }: PhotoDetailProps) => {
                 />
               </div>
 
+              <div>
+                <button
+                  onClick={handleSaveDate}
+                  style={{
+                    padding: '10px 20px',
+                    backgroundColor: '#4285f4',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    marginRight: '10px',
+                  }}
+                >
+                  저장
+                </button>
+                <button
+                  onClick={() => setEditMode('none')}
+                  style={{
+                    padding: '10px 20px',
+                    backgroundColor: '#9e9e9e',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  취소
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div>
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>
                   위도:
@@ -218,10 +282,10 @@ export const PhotoDetail = ({ photo, onClose, onUpdate }: PhotoDetailProps) => {
 
               <div>
                 <button
-                  onClick={handleSave}
+                  onClick={handleSaveLocation}
                   style={{
                     padding: '10px 20px',
-                    backgroundColor: '#4285f4',
+                    backgroundColor: '#34a853',
                     color: 'white',
                     border: 'none',
                     borderRadius: '4px',
@@ -234,7 +298,7 @@ export const PhotoDetail = ({ photo, onClose, onUpdate }: PhotoDetailProps) => {
                   저장
                 </button>
                 <button
-                  onClick={() => setEditing(false)}
+                  onClick={() => setEditMode('none')}
                   style={{
                     padding: '10px 20px',
                     backgroundColor: '#9e9e9e',
