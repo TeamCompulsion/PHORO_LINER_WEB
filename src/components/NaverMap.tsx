@@ -324,7 +324,7 @@ export const NaverMap = ({
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
 
-      {/* 위치 수정 모드: 중앙 고정 마커 */}
+      {/* 위치 수정 모드: 중앙 고정 사진 */}
       {locationEditPhoto && (
         <>
           <div
@@ -339,20 +339,27 @@ export const NaverMap = ({
           >
             <div
               style={{
-                width: '50px',
-                height: '50px',
-                borderRadius: '50%',
-                backgroundColor: '#ea4335',
-                border: '4px solid white',
+                width: '90px',
+                height: '90px',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                border: '4px solid #ea4335',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                fontSize: '24px',
+                backgroundColor: '#f0f0f0',
               }}
             >
-              📌
+              <img
+                src={getImageUrl(locationEditPhoto.filePath)}
+                alt="editing"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                }}
+                onError={(e) => {
+                  e.currentTarget.parentElement!.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background-color:#ea4335;color:white;font-size:36px;">📷</div>';
+                }}
+              />
             </div>
           </div>
 
