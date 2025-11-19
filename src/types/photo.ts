@@ -78,3 +78,7 @@ export interface PhotoLocationUpdateRequest {
   latitude: number;
   longitude: number;
 }
+
+export interface DeletePhotosRequest {
+  ids: number[];
+}

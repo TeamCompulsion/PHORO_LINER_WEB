@@ -7,6 +7,7 @@ import type {
   DateRange,
   PhotoCapturedDateUpdateRequest,
   PhotoLocationUpdateRequest,
+  DeletePhotosRequest,
 } from '../types/photo';
 
 export const photoApi = {
@@ -69,5 +70,12 @@ export const photoApi = {
     request: PhotoLocationUpdateRequest
   ): Promise<void> => {
     await apiClient.patch(`/photos/${photoId}/location`, request);
+  },
+
+  // DELETE /api/v1/photos - 사진 일괄 삭제
+  deletePhotos: async (request: DeletePhotosRequest): Promise<void> => {
+    await apiClient.delete('/photos', {
+      data: request,
+    });
   },
 };

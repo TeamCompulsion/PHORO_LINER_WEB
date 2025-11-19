@@ -13,6 +13,8 @@ export const PhotoList = ({ onPhotoClick, refreshTrigger }: PhotoListProps) => {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<number>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const loadPhotos = async () => {
     setLoading(true);
@@ -21,6 +23,7 @@ export const PhotoList = ({ onPhotoClick, refreshTrigger }: PhotoListProps) => {
     try {
       const response = await photoApi.getPhotos(config.defaultUserId);
       setPhotos(response.photos);
+      setSelectedPhotoIds(new Set()); // Clear selection after reload
     } catch (err) {
       setError('사진 목록을 불러오는데 실패했습니다.');
       console.error(err);
@@ -32,6 +35,50 @@ export const PhotoList = ({ onPhotoClick, refreshTrigger }: PhotoListProps) => {
   useEffect(() => {
     loadPhotos();
   }, [refreshTrigger]);
+
+  const togglePhotoSelection = (photoId: number, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setSelectedPhotoIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(photoId)) {
+        newSet.delete(photoId);
+      } else {
+        newSet.add(photoId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedPhotoIds.size === photos.length) {
+      setSelectedPhotoIds(new Set());
+    } else {
+      setSelectedPhotoIds(new Set(photos.map(p => p.id)));
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedPhotoIds.size === 0) return;
+
+    const confirmed = window.confirm(
+      `선택한 ${selectedPhotoIds.size}개의 사진을 삭제하시겠습니까?`
+    );
+
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+    setError(null);
+
+    try {
+      await photoApi.deletePhotos({ ids: Array.from(selectedPhotoIds) });
+      await loadPhotos(); // Reload photos after deletion
+    } catch (err) {
+      setError('사진 삭제에 실패했습니다.');
+      console.error(err);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -66,6 +113,58 @@ export const PhotoList = ({ onPhotoClick, refreshTrigger }: PhotoListProps) => {
     }}>
       <h3 style={{ marginTop: 0 }}>사진 목록 ({photos.length})</h3>
 
+      {/* Control bar */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        marginBottom: '16px',
+        padding: '12px',
+        backgroundColor: '#f5f5f5',
+        borderRadius: '4px',
+      }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={selectedPhotoIds.size === photos.length}
+            onChange={toggleSelectAll}
+            style={{ cursor: 'pointer', width: '18px', height: '18px' }}
+          />
+          <span style={{ fontSize: '14px', fontWeight: '500' }}>
+            전체 선택 ({selectedPhotoIds.size}/{photos.length})
+          </span>
+        </label>
+
+        <button
+          onClick={handleDeleteSelected}
+          disabled={selectedPhotoIds.size === 0 || isDeleting}
+          style={{
+            marginLeft: 'auto',
+            padding: '8px 16px',
+            backgroundColor: selectedPhotoIds.size > 0 ? '#d32f2f' : '#ccc',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: selectedPhotoIds.size > 0 ? 'pointer' : 'not-allowed',
+            fontSize: '14px',
+            fontWeight: '500',
+            transition: 'background-color 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            if (selectedPhotoIds.size > 0) {
+              e.currentTarget.style.backgroundColor = '#b71c1c';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (selectedPhotoIds.size > 0) {
+              e.currentTarget.style.backgroundColor = '#d32f2f';
+            }
+          }}
+        >
+          {isDeleting ? '삭제 중...' : `선택 항목 삭제 (${selectedPhotoIds.size})`}
+        </button>
+      </div>
+
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
@@ -79,8 +178,9 @@ export const PhotoList = ({ onPhotoClick, refreshTrigger }: PhotoListProps) => {
               cursor: 'pointer',
               borderRadius: '8px',
               overflow: 'hidden',
-              border: '1px solid #e0e0e0',
+              border: selectedPhotoIds.has(photo.id) ? '3px solid #1976d2' : '1px solid #e0e0e0',
               transition: 'transform 0.2s, box-shadow 0.2s',
+              position: 'relative',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.05)';
@@ -91,6 +191,35 @@ export const PhotoList = ({ onPhotoClick, refreshTrigger }: PhotoListProps) => {
               e.currentTarget.style.boxShadow = 'none';
             }}
           >
+            {/* Checkbox overlay */}
+            <div
+              onClick={(e) => togglePhotoSelection(photo.id, e)}
+              style={{
+                position: 'absolute',
+                top: '8px',
+                left: '8px',
+                zIndex: 10,
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                borderRadius: '4px',
+                padding: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={selectedPhotoIds.has(photo.id)}
+                onChange={() => {}} // Handled by parent div onClick
+                style={{
+                  cursor: 'pointer',
+                  width: '18px',
+                  height: '18px',
+                  margin: 0,
+                }}
+              />
+            </div>
+
             <div style={{
               width: '100%',
               paddingBottom: '100%',
