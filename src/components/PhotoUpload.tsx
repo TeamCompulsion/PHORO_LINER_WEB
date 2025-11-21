@@ -13,35 +13,36 @@ export const PhotoUpload = ({ onUploadSuccess, onUploadError }: PhotoUploadProps
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (files) {
-      setSelectedFiles(Array.from(files));
-    }
-  };
-
-  const handleUpload = async () => {
-    if (selectedFiles.length === 0) {
-      alert('업로드할 파일을 선택해주세요.');
+    if (!files || files.length === 0) {
       return;
     }
 
+    const fileArray = Array.from(files);
+    setSelectedFiles(fileArray);
     setUploading(true);
 
     try {
-      const response = await photoApi.uploadPhotos(config.defaultUserId, selectedFiles);
+      const response = await photoApi.uploadPhotos(config.defaultUserId, fileArray);
       setSelectedFiles([]);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
       onUploadSuccess?.(response);
-      alert(`${response.totalUploaded}개의 사진이 업로드되었습니다.`);
+      // 성공 메시지는 부드럽게 표시 (alert 대신 콘솔 로그)
+      console.log(`${response.totalUploaded}개의 사진이 업로드되었습니다.`);
     } catch (error) {
       const err = error instanceof Error ? error : new Error('업로드 실패');
       onUploadError?.(err);
       alert('사진 업로드에 실패했습니다.');
+      // 실패 시 선택된 파일 유지 (재시도 가능하도록)
     } finally {
       setUploading(false);
+      // 업로드 완료 후 input 초기화
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -59,7 +60,7 @@ export const PhotoUpload = ({ onUploadSuccess, onUploadError }: PhotoUploadProps
           display: 'flex',
           flexDirection: 'column',
           gap: '12px',
-          cursor: 'pointer',
+          cursor: uploading ? 'not-allowed' : 'pointer',
         }}
       >
         <div style={{
@@ -68,41 +69,69 @@ export const PhotoUpload = ({ onUploadSuccess, onUploadError }: PhotoUploadProps
           justifyContent: 'center',
           gap: '8px',
           padding: '12px',
-          backgroundColor: '#F2F2F7',
+          backgroundColor: uploading ? '#E5E5EA' : '#F2F2F7',
           borderRadius: '10px',
-          border: '1px dashed #C7C7CC',
+          border: uploading ? '1px solid #007AFF' : '1px dashed #C7C7CC',
           transition: 'all 0.2s',
+          opacity: uploading ? 0.7 : 1,
+          pointerEvents: uploading ? 'none' : 'auto',
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = '#E5E5EA';
-          e.currentTarget.style.borderColor = '#007AFF';
+          if (!uploading) {
+            e.currentTarget.style.backgroundColor = '#E5E5EA';
+            e.currentTarget.style.borderColor = '#007AFF';
+          }
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = '#F2F2F7';
-          e.currentTarget.style.borderColor = '#C7C7CC';
+          if (!uploading) {
+            e.currentTarget.style.backgroundColor = '#F2F2F7';
+            e.currentTarget.style.borderColor = '#C7C7CC';
+          }
         }}
         >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M12 5V19M5 12H19"
-              stroke="#007AFF"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-          <span style={{
-            fontSize: '15px',
-            fontWeight: '500',
-            color: '#007AFF',
-          }}>
-            사진 선택
-          </span>
+          {uploading ? (
+            <>
+              <div style={{
+                width: '20px',
+                height: '20px',
+                border: '2px solid #C7C7CC',
+                borderTop: '2px solid #007AFF',
+                borderRadius: '50%',
+                animation: 'spin 0.8s linear infinite',
+              }} />
+              <span style={{
+                fontSize: '15px',
+                fontWeight: '500',
+                color: '#007AFF',
+              }}>
+                업로드 중... ({selectedFiles.length}개)
+              </span>
+            </>
+          ) : (
+            <>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12 5V19M5 12H19"
+                  stroke="#007AFF"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <span style={{
+                fontSize: '15px',
+                fontWeight: '500',
+                color: '#007AFF',
+              }}>
+                사진 선택
+              </span>
+            </>
+          )}
         </div>
 
         <input
@@ -112,74 +141,13 @@ export const PhotoUpload = ({ onUploadSuccess, onUploadError }: PhotoUploadProps
           accept="image/*"
           multiple
           onChange={handleFileSelect}
+          disabled={uploading}
           style={{
             display: 'none',
           }}
         />
       </label>
 
-      {selectedFiles.length > 0 && (
-        <div style={{
-          marginTop: '12px',
-          padding: '12px',
-          backgroundColor: '#F2F2F7',
-          borderRadius: '10px',
-        }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '12px',
-          }}>
-            <span style={{
-              fontSize: '15px',
-              fontWeight: '500',
-              color: '#000000',
-            }}>
-              {selectedFiles.length}개의 파일 선택됨
-            </span>
-            <button
-              onClick={() => {
-                setSelectedFiles([]);
-                if (fileInputRef.current) {
-                  fileInputRef.current.value = '';
-                }
-              }}
-              style={{
-                padding: '4px 8px',
-                backgroundColor: 'transparent',
-                color: '#FF3B30',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '13px',
-                fontWeight: '500',
-              }}
-            >
-              취소
-            </button>
-          </div>
-
-          <button
-            onClick={handleUpload}
-            disabled={uploading || selectedFiles.length === 0}
-            style={{
-              width: '100%',
-              padding: '12px 16px',
-              backgroundColor: uploading || selectedFiles.length === 0 ? '#C7C7CC' : '#007AFF',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: '10px',
-              cursor: uploading || selectedFiles.length === 0 ? 'not-allowed' : 'pointer',
-              fontSize: '15px',
-              fontWeight: '600',
-              transition: 'all 0.2s',
-            }}
-          >
-            {uploading ? '업로드 중...' : '업로드'}
-          </button>
-        </div>
-      )}
     </div>
   );
 };
