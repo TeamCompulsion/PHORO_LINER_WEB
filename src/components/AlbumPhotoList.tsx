@@ -118,53 +118,54 @@ export const AlbumPhotoList = ({
     <div style={{
       backgroundColor: 'transparent',
     }}>
-      {/* 액션 버튼 */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '8px',
-          marginBottom: '16px',
-        }}
-      >
-        {onAddPhotos && (
-          <button
-            onClick={onAddPhotos}
-            style={{
-              flex: 1,
-              padding: '12px 16px',
-              backgroundColor: '#007AFF',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              fontSize: '15px',
-              fontWeight: '600',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-            }}
+      {/* iOS 스타일 사진 추가 버튼 */}
+      {onAddPhotos && (
+        <button
+          onClick={onAddPhotos}
+          style={{
+            width: '100%',
+            padding: '14px 20px',
+            backgroundColor: '#007AFF',
+            color: '#FFFFFF',
+            border: 'none',
+            borderRadius: '12px',
+            cursor: 'pointer',
+            fontSize: '17px',
+            fontWeight: '600',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            marginBottom: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            transition: 'all 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#0051D5';
+            e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,122,255,0.3)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#007AFF';
+            e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+          }}
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
           >
-            사진 추가
-          </button>
-        )}
-        {onShowOnMap && (
-          <button
-            onClick={onShowOnMap}
-            style={{
-              flex: 1,
-              padding: '12px 16px',
-              backgroundColor: '#34C759',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              fontSize: '15px',
-              fontWeight: '600',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-            }}
-          >
-            지도에서 보기
-          </button>
-        )}
-      </div>
+            <path
+              d="M12 5V19M5 12H19"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+          <span>사진 추가</span>
+        </button>
+      )}
 
       {error ? (
         <div style={{ 

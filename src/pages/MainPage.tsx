@@ -302,7 +302,6 @@ export const MainPage = () => {
                     }
                   }}
                   refreshTrigger={refreshTrigger}
-                  onShowOnMap={handleShowAlbumOnMap}
                   onAddPhotos={handleAddPhotosToAlbum}
                 />
               </div>
