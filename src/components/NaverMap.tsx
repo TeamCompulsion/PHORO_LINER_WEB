@@ -34,6 +34,7 @@ export const NaverMap = ({
   const { mapRef, map, isLoaded, error } = useNaverMap({ center, zoom });
   const markersRef = useRef<naver.maps.Marker[]>([]);
   const clusteringRef = useRef<InstanceType<typeof window.MarkerClustering> | null>(null);
+  const polylineRef = useRef<naver.maps.Polyline | null>(null);
   const [currentCenter, setCurrentCenter] = useState<{ lat: number; lng: number } | null>(null);
 
   // 마커 클리어
@@ -43,6 +44,10 @@ export const NaverMap = ({
     if (clusteringRef.current) {
       clusteringRef.current.setMap(null);
       clusteringRef.current = null;
+    }
+    if (polylineRef.current) {
+      polylineRef.current.setMap(null);
+      polylineRef.current = null;
     }
   };
 
@@ -189,6 +194,29 @@ export const NaverMap = ({
         }
       },
     });
+
+    // 마커들을 날짜 순서대로 선으로 연결 (백엔드에서 정렬된 순서 그대로 사용)
+    if (filteredPhotoMarkers.length > 1 && !locationEditPhoto) {
+      const path = filteredPhotoMarkers.map((photo) => 
+        new window.naver.maps.LatLng(photo.lat, photo.lng)
+      );
+
+      // 기존 polyline 제거
+      if (polylineRef.current) {
+        polylineRef.current.setMap(null);
+      }
+
+      // 새로운 polyline 생성
+      polylineRef.current = new window.naver.maps.Polyline({
+        map,
+        path,
+        strokeColor: '#4285f4',
+        strokeWeight: 3,
+        strokeOpacity: 0.8,
+        strokeStyle: 'solid',
+        zIndex: 1,
+      });
+    }
 
     // POI 마커 추가 (날짜 범위 외 사진)
     poiMarkers.forEach((poi) => {

@@ -235,7 +235,7 @@ export const AlbumPhotoList = ({
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+              gridTemplateColumns: 'repeat(3, 1fr)',
               gap: '16px',
             }}
           >
