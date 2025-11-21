@@ -99,7 +99,7 @@ export const NaverMap = ({
 
     // 클러스터링 모드: filteredPhotoMarkers를 클러스터링으로 관리
     const markers = filteredPhotoMarkers.map((photo) => {
-      const imageUrl = getImageUrl(photo.filePath);
+      const imageUrl = getImageUrl(photo.thumbnailPath || photo.filePath);
 
       const marker = new window.naver.maps.Marker({
         position: new window.naver.maps.LatLng(photo.lat, photo.lng),
@@ -181,7 +181,7 @@ export const NaverMap = ({
               const firstMarker = clusterMembers[0];
               const photoData = (firstMarker as any).photoData;
               if (photoData) {
-                const imageUrl = getImageUrl(photoData.filePath);
+                const imageUrl = getImageUrl(photoData.thumbnailPath || photoData.filePath);
                 (imageElement as HTMLElement).style.backgroundImage = `url(${imageUrl})`;
               }
             }
@@ -349,7 +349,11 @@ export const NaverMap = ({
               }}
             >
               <img
-                src={getImageUrl(locationEditPhoto.filePath)}
+                src={getImageUrl(
+                  ('thumbnailPath' in locationEditPhoto && locationEditPhoto.thumbnailPath)
+                    ? locationEditPhoto.thumbnailPath
+                    : locationEditPhoto.filePath
+                )}
                 alt="editing"
                 style={{
                   width: '100%',

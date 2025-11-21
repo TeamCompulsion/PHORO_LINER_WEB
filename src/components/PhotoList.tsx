@@ -255,7 +255,7 @@ export const PhotoList = ({ onPhotoClick, refreshTrigger }: PhotoListProps) => {
               position: 'relative',
             }}>
               <img
-                src={getImageUrl(photo.filePath)}
+                src={getImageUrl(photo.thumbnailPath || photo.filePath)}
                 alt={`Photo ${photo.id}`}
                 style={{
                   position: 'absolute',
