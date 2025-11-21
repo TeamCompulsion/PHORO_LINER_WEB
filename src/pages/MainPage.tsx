@@ -137,68 +137,101 @@ export const MainPage = () => {
     }
   };
 
+  console.log('MainPage rendering', { activeTab, selectedAlbum });
+
   return (
     <div style={{
       display: 'flex',
       height: '100vh',
       overflow: 'hidden',
+      backgroundColor: '#F2F2F7',
     }}>
       {/* 왼쪽 사이드바 */}
       <div style={{
         width: '400px',
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#F2F2F7',
         overflowY: 'auto',
-        padding: '20px',
+        padding: '0',
         boxShadow: '2px 0 8px rgba(0,0,0,0.1)',
+        display: 'flex',
+        flexDirection: 'column',
       }}>
-        <h1 style={{ margin: '0 0 20px 0', fontSize: '24px', color: '#333' }}>
-          Photo Liner
-        </h1>
-
-        {/* 탭 */}
+        {/* 헤더 */}
         <div style={{
-          display: 'flex',
-          gap: '8px',
-          marginBottom: '20px',
-          borderBottom: '2px solid #e0e0e0',
+          padding: '20px 20px 16px 20px',
+          backgroundColor: '#FFFFFF',
+          borderBottom: '0.5px solid rgba(0,0,0,0.1)',
         }}>
-          <button
-            onClick={() => handleTabChange('photos')}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: 'transparent',
-              border: 'none',
-              borderBottom: activeTab === 'photos' ? '3px solid #1976d2' : '3px solid transparent',
-              color: activeTab === 'photos' ? '#1976d2' : '#666',
-              cursor: 'pointer',
-              fontSize: '16px',
-              fontWeight: activeTab === 'photos' ? '600' : '400',
-              transition: 'all 0.2s',
-            }}
-          >
-            사진 보관함
-          </button>
-          <button
-            onClick={() => handleTabChange('albums')}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: 'transparent',
-              border: 'none',
-              borderBottom: activeTab === 'albums' ? '3px solid #1976d2' : '3px solid transparent',
-              color: activeTab === 'albums' ? '#1976d2' : '#666',
-              cursor: 'pointer',
-              fontSize: '16px',
-              fontWeight: activeTab === 'albums' ? '600' : '400',
-              transition: 'all 0.2s',
-            }}
-          >
-            앨범
-          </button>
+          <h1 style={{ 
+            margin: '0', 
+            fontSize: '28px', 
+            fontWeight: '700',
+            color: '#000000',
+            letterSpacing: '-0.5px',
+          }}>
+            Photo Liner
+          </h1>
         </div>
+
+        {/* iOS 스타일 세그먼트 컨트롤 */}
+        <div style={{
+          padding: '16px 20px',
+          backgroundColor: '#F2F2F7',
+        }}>
+          <div style={{
+            display: 'flex',
+            backgroundColor: '#E5E5EA',
+            borderRadius: '10px',
+            padding: '3px',
+            gap: '3px',
+          }}>
+            <button
+              onClick={() => handleTabChange('photos')}
+              style={{
+                flex: 1,
+                padding: '8px 16px',
+                backgroundColor: activeTab === 'photos' ? '#FFFFFF' : 'transparent',
+                border: 'none',
+                color: activeTab === 'photos' ? '#007AFF' : '#8E8E93',
+                cursor: 'pointer',
+                fontSize: '15px',
+                fontWeight: activeTab === 'photos' ? '600' : '400',
+                borderRadius: '8px',
+                transition: 'all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1)',
+              }}
+            >
+              사진 보관함
+            </button>
+            <button
+              onClick={() => handleTabChange('albums')}
+              style={{
+                flex: 1,
+                padding: '8px 16px',
+                backgroundColor: activeTab === 'albums' ? '#FFFFFF' : 'transparent',
+                border: 'none',
+                color: activeTab === 'albums' ? '#007AFF' : '#8E8E93',
+                cursor: 'pointer',
+                fontSize: '15px',
+                fontWeight: activeTab === 'albums' ? '600' : '400',
+                borderRadius: '8px',
+                transition: 'all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1)',
+              }}
+            >
+              앨범
+            </button>
+          </div>
+        </div>
+
+        {/* 컨텐츠 영역 */}
+        <div style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: '0 20px 20px 20px',
+        }}>
 
         {activeTab === 'photos' && (
           <>
-            <div style={{ marginBottom: '20px' }}>
+            <div style={{ marginBottom: '16px' }}>
               <PhotoUpload
                 onUploadSuccess={handleUploadSuccess}
                 onUploadError={(error) => console.error(error)}
@@ -221,32 +254,53 @@ export const MainPage = () => {
                   alignItems: 'center',
                   gap: '12px',
                   marginBottom: '16px',
-                  padding: '12px',
-                  backgroundColor: 'white',
-                  borderRadius: '8px',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  padding: '12px 16px',
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '12px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                 }}>
                   <button
                     onClick={() => setSelectedAlbum(null)}
                     style={{
-                      padding: '6px 12px',
-                      backgroundColor: '#f5f5f5',
-                      color: '#666',
-                      border: '1px solid #ddd',
-                      borderRadius: '4px',
+                      padding: '8px',
+                      backgroundColor: 'transparent',
+                      color: '#007AFF',
+                      border: 'none',
+                      borderRadius: '8px',
                       cursor: 'pointer',
-                      fontSize: '14px',
+                      fontSize: '17px',
+                      fontWeight: '400',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     }}
                   >
-                    ← 뒤로
+                    ←
                   </button>
-                  <span style={{ fontSize: '16px', fontWeight: '500' }}>
+                  <span style={{ 
+                    fontSize: '17px', 
+                    fontWeight: '600',
+                    color: '#000000',
+                  }}>
                     {selectedAlbum.name}
                   </span>
                 </div>
                 <AlbumPhotoList
                   albumId={selectedAlbum.id}
-                  onPhotoClick={setSelectedPhoto}
+                  onPhotoClick={(photo) => {
+                    // AlbumPhotoItem을 Photo로 변환하여 전달
+                    if ('photoId' in photo) {
+                      setSelectedPhoto({
+                        id: photo.photoId,
+                        filePath: photo.filePath,
+                        thumbnailPath: photo.thumbnailPath,
+                        capturedDt: photo.capturedDt,
+                        userId: 0,
+                      });
+                    } else {
+                      setSelectedPhoto(photo);
+                    }
+                  }}
                   refreshTrigger={refreshTrigger}
                   onShowOnMap={handleShowAlbumOnMap}
                   onAddPhotos={handleAddPhotosToAlbum}
@@ -256,11 +310,11 @@ export const MainPage = () => {
               <AlbumList
                 onAlbumClick={handleAlbumClick}
                 refreshTrigger={refreshTrigger}
-                selectedAlbumId={selectedAlbum?.id || null}
               />
             )}
           </>
         )}
+        </div>
       </div>
 
       {/* 오른쪽 지도 */}
@@ -304,7 +358,6 @@ export const MainPage = () => {
           isOpen={isPhotoSelectionModalOpen}
           onClose={() => setIsPhotoSelectionModalOpen(false)}
           onConfirm={handlePhotoSelectionConfirm}
-          albumId={selectedAlbum.id}
         />
       )}
     </div>

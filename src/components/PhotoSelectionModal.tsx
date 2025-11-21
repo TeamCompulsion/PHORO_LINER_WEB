@@ -8,7 +8,6 @@ interface PhotoSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (selectedPhotoIds: number[]) => void;
-  albumId: number;
 }
 
 const PAGE_SIZE = 20;
@@ -17,14 +16,12 @@ export const PhotoSelectionModal = ({
   isOpen,
   onClose,
   onConfirm,
-  albumId,
 }: PhotoSelectionModalProps) => {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<number>>(new Set());
   const [currentPage, setCurrentPage] = useState(0);
-  const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
   const loadPhotos = async () => {
@@ -38,7 +35,6 @@ export const PhotoSelectionModal = ({
         size: PAGE_SIZE,
       });
       setPhotos(response.photos);
-      setTotalCount(response.pageInfo.totalElements);
       setTotalPages(response.pageInfo.totalPages);
     } catch (err) {
       setError('사진 목록을 불러오는데 실패했습니다.');

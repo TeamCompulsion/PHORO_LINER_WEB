@@ -47,8 +47,10 @@ export const AlbumPhotoList = ({
     }
   }, [albumId, refreshTrigger]);
 
-  const togglePhotoSelection = (photoId: number, event: React.MouseEvent) => {
-    event.stopPropagation();
+  const togglePhotoSelection = (photoId: number, event?: React.MouseEvent) => {
+    if (event) {
+      event.stopPropagation();
+    }
     setSelectedPhotoIds((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(photoId)) {
@@ -113,236 +115,245 @@ export const AlbumPhotoList = ({
   }
 
   return (
-    <div
-      style={{
-        padding: '20px',
-        backgroundColor: 'white',
-        borderRadius: '8px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      }}
-    >
+    <div style={{
+      backgroundColor: 'transparent',
+    }}>
+      {/* 액션 버튼 */}
       <div
         style={{
           display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          gap: '8px',
           marginBottom: '16px',
         }}
       >
-        <h3 style={{ margin: 0 }}>
-          앨범 내 사진 ({photos.length}개)
-        </h3>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {onAddPhotos && (
-            <button
-              onClick={onAddPhotos}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#1976d2',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '500',
-              }}
-            >
-              앨범에 사진 추가
-            </button>
-          )}
-          {onShowOnMap && (
-            <button
-              onClick={onShowOnMap}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#34a853',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '500',
-              }}
-            >
-              지도에서 보기
-            </button>
-          )}
-        </div>
+        {onAddPhotos && (
+          <button
+            onClick={onAddPhotos}
+            style={{
+              flex: 1,
+              padding: '12px 16px',
+              backgroundColor: '#007AFF',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              fontSize: '15px',
+              fontWeight: '600',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            }}
+          >
+            사진 추가
+          </button>
+        )}
+        {onShowOnMap && (
+          <button
+            onClick={onShowOnMap}
+            style={{
+              flex: 1,
+              padding: '12px 16px',
+              backgroundColor: '#34C759',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              fontSize: '15px',
+              fontWeight: '600',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            }}
+          >
+            지도에서 보기
+          </button>
+        )}
       </div>
 
       {error ? (
-        <div style={{ padding: '20px', textAlign: 'center', color: '#d32f2f' }}>
+        <div style={{ 
+          padding: '20px', 
+          textAlign: 'center', 
+          color: '#FF3B30',
+          fontSize: '15px',
+        }}>
           {error}
         </div>
       ) : photos.length === 0 ? (
-        <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>
+        <div style={{ 
+          padding: '60px 20px', 
+          textAlign: 'center', 
+          color: '#8E8E93',
+          fontSize: '17px',
+        }}>
           이 앨범에는 사진이 없습니다.
         </div>
       ) : (
         <>
-          {/* Control bar */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              marginBottom: '16px',
-              padding: '12px',
-              backgroundColor: '#f5f5f5',
-              borderRadius: '4px',
-            }}
-          >
-            <label
+          {/* Control bar - 선택 모드일 때만 표시 */}
+          {selectedPhotoIds.size > 0 && (
+            <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                cursor: 'pointer',
+                gap: '12px',
+                marginBottom: '16px',
+                padding: '12px 16px',
+                backgroundColor: '#FFFFFF',
+                borderRadius: '12px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
               }}
             >
-              <input
-                type="checkbox"
-                checked={selectedPhotoIds.size === photos.length && photos.length > 0}
-                onChange={toggleSelectAll}
-                style={{ cursor: 'pointer', width: '18px', height: '18px' }}
-              />
-              <span style={{ fontSize: '14px', fontWeight: '500' }}>
-                전체 선택 ({selectedPhotoIds.size}/{photos.length})
-              </span>
-            </label>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  flex: 1,
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedPhotoIds.size === photos.length && photos.length > 0}
+                  onChange={toggleSelectAll}
+                  style={{ 
+                    cursor: 'pointer', 
+                    width: '20px', 
+                    height: '20px',
+                    accentColor: '#007AFF',
+                  }}
+                />
+                <span style={{ 
+                  fontSize: '15px', 
+                  fontWeight: '500',
+                  color: '#000000',
+                }}>
+                  전체 선택 ({selectedPhotoIds.size}/{photos.length})
+                </span>
+              </label>
 
-            <button
-              onClick={handleDeleteSelected}
-              disabled={selectedPhotoIds.size === 0 || isDeleting}
-              style={{
-                marginLeft: 'auto',
-                padding: '8px 16px',
-                backgroundColor: selectedPhotoIds.size > 0 ? '#d32f2f' : '#ccc',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: selectedPhotoIds.size > 0 ? 'pointer' : 'not-allowed',
-                fontSize: '14px',
-                fontWeight: '500',
-              }}
-            >
-              {isDeleting
-                ? '삭제 중...'
-                : `선택 항목 삭제 (${selectedPhotoIds.size})`}
-            </button>
-          </div>
+              <button
+                onClick={handleDeleteSelected}
+                disabled={selectedPhotoIds.size === 0 || isDeleting}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: selectedPhotoIds.size > 0 ? '#FF3B30' : '#C7C7CC',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: selectedPhotoIds.size > 0 ? 'pointer' : 'not-allowed',
+                  fontSize: '15px',
+                  fontWeight: '600',
+                }}
+              >
+                {isDeleting
+                  ? '삭제 중...'
+                  : `삭제 (${selectedPhotoIds.size})`}
+              </button>
+            </div>
+          )}
 
+          {/* iOS 스타일 그리드 - 4열 */}
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '16px',
+              gridTemplateColumns: 'repeat(4, 1fr)',
+              gap: '2px',
             }}
           >
             {photos.map((photo) => (
-          <div
-            key={photo.id}
-            onClick={() => onPhotoClick?.(convertToPhoto(photo))}
-            style={{
-              cursor: 'pointer',
-              borderRadius: '8px',
-              overflow: 'hidden',
-              border: selectedPhotoIds.has(photo.id)
-                ? '3px solid #1976d2'
-                : '1px solid #e0e0e0',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-              position: 'relative',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-          >
-            {/* Checkbox overlay */}
-            <div
-              onClick={(e) => togglePhotoSelection(photo.id, e)}
-              style={{
-                position: 'absolute',
-                top: '8px',
-                left: '8px',
-                zIndex: 10,
-                backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                borderRadius: '4px',
-                padding: '4px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={selectedPhotoIds.has(photo.id)}
-                onChange={() => {}}
+              <div
+                key={photo.id}
+                onClick={(e) => {
+                  if (selectedPhotoIds.size > 0) {
+                    togglePhotoSelection(photo.id, e);
+                  } else {
+                    onPhotoClick?.(convertToPhoto(photo));
+                  }
+                }}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  togglePhotoSelection(photo.id, e);
+                }}
                 style={{
                   cursor: 'pointer',
-                  width: '18px',
-                  height: '18px',
-                  margin: 0,
-                }}
-              />
-            </div>
-
-            <div
-              style={{
-                width: '100%',
-                paddingBottom: '100%',
-                backgroundColor: '#f5f5f5',
-                position: 'relative',
-              }}
-            >
-              <img
-                src={getImageUrl(photo.thumbnailPath || photo.filePath)}
-                alt={photo.fileName}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                }}
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src =
-                    'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ddd" width="100" height="100"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
-                }}
-              />
-            </div>
-            <div
-              style={{
-                padding: '8px',
-                fontSize: '11px',
-                color: '#666',
-                lineHeight: '1.4',
-              }}
-            >
-              <div style={{ marginBottom: '4px' }}>
-                {photo.capturedDt
-                  ? new Date(photo.capturedDt).toLocaleDateString()
-                  : '날짜 없음'}
-              </div>
-              <div
-                style={{
-                  fontSize: '10px',
-                  color: '#999',
+                  borderRadius: '0',
                   overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
+                  position: 'relative',
+                  aspectRatio: '1',
+                  backgroundColor: '#E5E5EA',
+                  transition: 'opacity 0.15s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.opacity = '0.8';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity = '1';
                 }}
               >
-                {photo.fileName}
+                {/* iOS 스타일 선택 체크마크 */}
+                {selectedPhotoIds.has(photo.id) && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '6px',
+                      right: '6px',
+                      zIndex: 10,
+                      width: '24px',
+                      height: '24px',
+                      backgroundColor: '#007AFF',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                    }}
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 14 14"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M11.6667 3.5L5.25 9.91667L2.33334 7"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                )}
+
+                {/* 선택 모드일 때 오버레이 */}
+                {selectedPhotoIds.size > 0 && !selectedPhotoIds.has(photo.id) && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      backgroundColor: 'rgba(0,0,0,0.3)',
+                      zIndex: 5,
+                    }}
+                  />
+                )}
+
+                <img
+                  src={getImageUrl(photo.thumbnailPath || photo.filePath)}
+                  alt={photo.fileName}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                  }}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src =
+                      'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23E5E5EA" width="100" height="100"/%3E%3Ctext fill="%238E8E93" x="50%25" y="50%25" text-anchor="middle" dy=".3em" font-size="12"%3ENo Image%3C/text%3E%3C/svg%3E';
+                  }}
+                />
               </div>
-            </div>
-          </div>
-        ))}
+            ))}
           </div>
         </>
       )}

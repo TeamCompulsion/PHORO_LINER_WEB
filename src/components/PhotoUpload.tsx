@@ -47,48 +47,139 @@ export const PhotoUpload = ({ onUploadSuccess, onUploadError }: PhotoUploadProps
 
   return (
     <div style={{
-      padding: '20px',
-      backgroundColor: 'white',
-      borderRadius: '8px',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+      padding: '12px 16px',
+      backgroundColor: '#FFFFFF',
+      borderRadius: '12px',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+      marginBottom: '16px',
     }}>
-      <h3 style={{ marginTop: 0 }}>사진 업로드</h3>
+      <label
+        htmlFor="photo-upload-input"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '12px',
+          cursor: 'pointer',
+        }}
+      >
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px',
+          padding: '12px',
+          backgroundColor: '#F2F2F7',
+          borderRadius: '10px',
+          border: '1px dashed #C7C7CC',
+          transition: 'all 0.2s',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = '#E5E5EA';
+          e.currentTarget.style.borderColor = '#007AFF';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = '#F2F2F7';
+          e.currentTarget.style.borderColor = '#C7C7CC';
+        }}
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 5V19M5 12H19"
+              stroke="#007AFF"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+          <span style={{
+            fontSize: '15px',
+            fontWeight: '500',
+            color: '#007AFF',
+          }}>
+            사진 선택
+          </span>
+        </div>
 
-      <div style={{ marginBottom: '16px' }}>
         <input
+          id="photo-upload-input"
           ref={fileInputRef}
           type="file"
           accept="image/*"
           multiple
           onChange={handleFileSelect}
           style={{
-            display: 'block',
-            marginBottom: '8px',
+            display: 'none',
           }}
         />
-        {selectedFiles.length > 0 && (
-          <p style={{ fontSize: '14px', color: '#666' }}>
-            {selectedFiles.length}개의 파일 선택됨
-          </p>
-        )}
-      </div>
+      </label>
 
-      <button
-        onClick={handleUpload}
-        disabled={uploading || selectedFiles.length === 0}
-        style={{
-          padding: '10px 20px',
-          backgroundColor: uploading ? '#ccc' : '#4285f4',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: uploading ? 'not-allowed' : 'pointer',
-          fontSize: '14px',
-          fontWeight: 'bold',
-        }}
-      >
-        {uploading ? '업로드 중...' : '업로드'}
-      </button>
+      {selectedFiles.length > 0 && (
+        <div style={{
+          marginTop: '12px',
+          padding: '12px',
+          backgroundColor: '#F2F2F7',
+          borderRadius: '10px',
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '12px',
+          }}>
+            <span style={{
+              fontSize: '15px',
+              fontWeight: '500',
+              color: '#000000',
+            }}>
+              {selectedFiles.length}개의 파일 선택됨
+            </span>
+            <button
+              onClick={() => {
+                setSelectedFiles([]);
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = '';
+                }
+              }}
+              style={{
+                padding: '4px 8px',
+                backgroundColor: 'transparent',
+                color: '#FF3B30',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '13px',
+                fontWeight: '500',
+              }}
+            >
+              취소
+            </button>
+          </div>
+
+          <button
+            onClick={handleUpload}
+            disabled={uploading || selectedFiles.length === 0}
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              backgroundColor: uploading || selectedFiles.length === 0 ? '#C7C7CC' : '#007AFF',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: '10px',
+              cursor: uploading || selectedFiles.length === 0 ? 'not-allowed' : 'pointer',
+              fontSize: '15px',
+              fontWeight: '600',
+              transition: 'all 0.2s',
+            }}
+          >
+            {uploading ? '업로드 중...' : '업로드'}
+          </button>
+        </div>
+      )}
     </div>
   );
 };
