@@ -9,6 +9,7 @@ interface AlbumPhotoListProps {
   onPhotoClick?: (photo: Photo | AlbumPhotoItem) => void;
   refreshTrigger?: number;
   onShowOnMap?: () => void;
+  onAddPhotos?: () => void;
 }
 
 export const AlbumPhotoList = ({
@@ -16,6 +17,7 @@ export const AlbumPhotoList = ({
   onPhotoClick,
   refreshTrigger,
   onShowOnMap,
+  onAddPhotos,
 }: AlbumPhotoListProps) => {
   const [photos, setPhotos] = useState<AlbumPhotoItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -110,22 +112,6 @@ export const AlbumPhotoList = ({
     );
   }
 
-  if (error) {
-    return (
-      <div style={{ padding: '20px', textAlign: 'center', color: '#d32f2f' }}>
-        {error}
-      </div>
-    );
-  }
-
-  if (photos.length === 0) {
-    return (
-      <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
-        이 앨범에는 사진이 없습니다.
-      </div>
-    );
-  }
-
   return (
     <div
       style={{
@@ -146,85 +132,114 @@ export const AlbumPhotoList = ({
         <h3 style={{ margin: 0 }}>
           앨범 내 사진 ({photos.length}개)
         </h3>
-        {onShowOnMap && (
-          <button
-            onClick={onShowOnMap}
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {onAddPhotos && (
+            <button
+              onClick={onAddPhotos}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: '#1976d2',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '500',
+              }}
+            >
+              앨범에 사진 추가
+            </button>
+          )}
+          {onShowOnMap && (
+            <button
+              onClick={onShowOnMap}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: '#34a853',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '500',
+              }}
+            >
+              지도에서 보기
+            </button>
+          )}
+        </div>
+      </div>
+
+      {error ? (
+        <div style={{ padding: '20px', textAlign: 'center', color: '#d32f2f' }}>
+          {error}
+        </div>
+      ) : photos.length === 0 ? (
+        <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>
+          이 앨범에는 사진이 없습니다.
+        </div>
+      ) : (
+        <>
+          {/* Control bar */}
+          <div
             style={{
-              padding: '8px 16px',
-              backgroundColor: '#34a853',
-              color: 'white',
-              border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              marginBottom: '16px',
+              padding: '12px',
+              backgroundColor: '#f5f5f5',
               borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '500',
             }}
           >
-            지도에서 보기
-          </button>
-        )}
-      </div>
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={selectedPhotoIds.size === photos.length && photos.length > 0}
+                onChange={toggleSelectAll}
+                style={{ cursor: 'pointer', width: '18px', height: '18px' }}
+              />
+              <span style={{ fontSize: '14px', fontWeight: '500' }}>
+                전체 선택 ({selectedPhotoIds.size}/{photos.length})
+              </span>
+            </label>
 
-      {/* Control bar */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          marginBottom: '16px',
-          padding: '12px',
-          backgroundColor: '#f5f5f5',
-          borderRadius: '4px',
-        }}
-      >
-        <label
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            cursor: 'pointer',
-          }}
-        >
-          <input
-            type="checkbox"
-            checked={selectedPhotoIds.size === photos.length}
-            onChange={toggleSelectAll}
-            style={{ cursor: 'pointer', width: '18px', height: '18px' }}
-          />
-          <span style={{ fontSize: '14px', fontWeight: '500' }}>
-            전체 선택 ({selectedPhotoIds.size}/{photos.length})
-          </span>
-        </label>
+            <button
+              onClick={handleDeleteSelected}
+              disabled={selectedPhotoIds.size === 0 || isDeleting}
+              style={{
+                marginLeft: 'auto',
+                padding: '8px 16px',
+                backgroundColor: selectedPhotoIds.size > 0 ? '#d32f2f' : '#ccc',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: selectedPhotoIds.size > 0 ? 'pointer' : 'not-allowed',
+                fontSize: '14px',
+                fontWeight: '500',
+              }}
+            >
+              {isDeleting
+                ? '삭제 중...'
+                : `선택 항목 삭제 (${selectedPhotoIds.size})`}
+            </button>
+          </div>
 
-        <button
-          onClick={handleDeleteSelected}
-          disabled={selectedPhotoIds.size === 0 || isDeleting}
-          style={{
-            marginLeft: 'auto',
-            padding: '8px 16px',
-            backgroundColor: selectedPhotoIds.size > 0 ? '#d32f2f' : '#ccc',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: selectedPhotoIds.size > 0 ? 'pointer' : 'not-allowed',
-            fontSize: '14px',
-            fontWeight: '500',
-          }}
-        >
-          {isDeleting
-            ? '삭제 중...'
-            : `선택 항목 삭제 (${selectedPhotoIds.size})`}
-        </button>
-      </div>
-
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-          gap: '16px',
-        }}
-      >
-        {photos.map((photo) => (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+              gap: '16px',
+            }}
+          >
+            {photos.map((photo) => (
           <div
             key={photo.id}
             onClick={() => onPhotoClick?.(convertToPhoto(photo))}
@@ -328,7 +343,9 @@ export const AlbumPhotoList = ({
             </div>
           </div>
         ))}
-      </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
