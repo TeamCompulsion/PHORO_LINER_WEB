@@ -5,7 +5,6 @@ import type {
   MapMarkersResponse,
   PhotoUploadResponse,
   MapBounds,
-  DateRange,
   PhotoCapturedDateUpdateRequest,
   PhotoLocationUpdateRequest,
   DeletePhotosRequest,
@@ -24,17 +23,16 @@ export const photoApi = {
     return response.data;
   },
 
-  // GET /api/v1/photos/markers - 지도 마커 조회
+  // GET /api/v1/photos/markers - 지도 마커 조회 (앨범 ID 기반)
   getMapMarkers: async (
     userId: number,
-    dateRange: DateRange,
+    albumId: number,
     bounds: MapBounds
   ): Promise<MapMarkersResponse> => {
     const response = await apiClient.get<MapMarkersResponse>('/photos/markers', {
       params: {
         userId,
-        from: dateRange.from,
-        to: dateRange.to,
+        albumId,
         swLat: bounds.swLat,
         swLng: bounds.swLng,
         neLat: bounds.neLat,

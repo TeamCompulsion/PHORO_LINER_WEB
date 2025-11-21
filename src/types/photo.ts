@@ -13,6 +13,7 @@ export interface PhotoMarker {
   id: number;
   capturedDt: string;
   filePath: string;
+  thumbnailPath?: string;
   lat: number;
   lng: number;
 }
@@ -20,6 +21,8 @@ export interface PhotoMarker {
 export interface PoiMarker {
   id: number;
   capturedDt: string;
+  filePath?: string;
+  thumbnailPath?: string;
   lat: number;
   lng: number;
 }

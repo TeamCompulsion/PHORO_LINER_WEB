@@ -3,30 +3,32 @@ import { NaverMap } from '../components/NaverMap';
 import { PhotoUpload } from '../components/PhotoUpload';
 import { PhotoList } from '../components/PhotoList';
 import { PhotoDetail } from '../components/PhotoDetail';
-import { DateRangeFilter } from '../components/DateRangeFilter';
+import { AlbumList } from '../components/AlbumList';
+import { AlbumPhotoList } from '../components/AlbumPhotoList';
 import { photoApi } from '../api/photoApi';
 import { config } from '../config/env';
 import type { PhotoMarker, PoiMarker, Photo, MapBounds } from '../types/photo';
+import type { Album } from '../types/album';
+
+type TabType = 'photos' | 'albums';
 
 export const MainPage = () => {
+  const [activeTab, setActiveTab] = useState<TabType>('photos');
+  const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
   const [photoMarkers, setPhotoMarkers] = useState<PhotoMarker[]>([]);
   const [poiMarkers, setPoiMarkers] = useState<PoiMarker[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | PhotoMarker | null>(null);
   const [locationEditPhoto, setLocationEditPhoto] = useState<Photo | PhotoMarker | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
-  const [dateRange, setDateRange] = useState({
-    from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    to: new Date().toISOString().split('T')[0],
-  });
 
   const loadMarkers = useCallback(async () => {
-    if (!mapBounds) return;
+    if (!mapBounds || !selectedAlbum) return;
 
     try {
       const response = await photoApi.getMapMarkers(
         config.defaultUserId,
-        dateRange,
+        selectedAlbum.id,
         mapBounds
       );
 
@@ -35,7 +37,7 @@ export const MainPage = () => {
     } catch (error) {
       console.error('Failed to load markers:', error);
     }
-  }, [mapBounds, dateRange]);
+  }, [mapBounds, selectedAlbum]);
 
   useEffect(() => {
     loadMarkers();
@@ -43,10 +45,6 @@ export const MainPage = () => {
 
   const handleMapBoundsChange = (bounds: MapBounds) => {
     setMapBounds(bounds);
-  };
-
-  const handleDateRangeChange = (from: string, to: string) => {
-    setDateRange({ from, to });
   };
 
   const handleUploadSuccess = () => {
@@ -86,6 +84,23 @@ export const MainPage = () => {
     }
   };
 
+  const handleAlbumClick = (album: Album) => {
+    setSelectedAlbum(album);
+  };
+
+  const handleShowAlbumOnMap = () => {
+    if (selectedAlbum) {
+      loadMarkers();
+    }
+  };
+
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+    if (tab === 'photos') {
+      setSelectedAlbum(null);
+    }
+  };
+
   return (
     <div style={{
       display: 'flex',
@@ -104,19 +119,111 @@ export const MainPage = () => {
           Photo Liner
         </h1>
 
-        <DateRangeFilter onDateRangeChange={handleDateRangeChange} />
-
-        <div style={{ marginBottom: '20px' }}>
-          <PhotoUpload
-            onUploadSuccess={handleUploadSuccess}
-            onUploadError={(error) => console.error(error)}
-          />
+        {/* 탭 */}
+        <div style={{
+          display: 'flex',
+          gap: '8px',
+          marginBottom: '20px',
+          borderBottom: '2px solid #e0e0e0',
+        }}>
+          <button
+            onClick={() => handleTabChange('photos')}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: 'transparent',
+              border: 'none',
+              borderBottom: activeTab === 'photos' ? '3px solid #1976d2' : '3px solid transparent',
+              color: activeTab === 'photos' ? '#1976d2' : '#666',
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: activeTab === 'photos' ? '600' : '400',
+              transition: 'all 0.2s',
+            }}
+          >
+            사진 보관함
+          </button>
+          <button
+            onClick={() => handleTabChange('albums')}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: 'transparent',
+              border: 'none',
+              borderBottom: activeTab === 'albums' ? '3px solid #1976d2' : '3px solid transparent',
+              color: activeTab === 'albums' ? '#1976d2' : '#666',
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: activeTab === 'albums' ? '600' : '400',
+              transition: 'all 0.2s',
+            }}
+          >
+            앨범
+          </button>
         </div>
 
-        <PhotoList
-          onPhotoClick={setSelectedPhoto}
-          refreshTrigger={refreshTrigger}
-        />
+        {activeTab === 'photos' && (
+          <>
+            <div style={{ marginBottom: '20px' }}>
+              <PhotoUpload
+                onUploadSuccess={handleUploadSuccess}
+                onUploadError={(error) => console.error(error)}
+              />
+            </div>
+
+            <PhotoList
+              onPhotoClick={setSelectedPhoto}
+              refreshTrigger={refreshTrigger}
+            />
+          </>
+        )}
+
+        {activeTab === 'albums' && (
+          <>
+            {selectedAlbum ? (
+              <div>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  marginBottom: '16px',
+                  padding: '12px',
+                  backgroundColor: 'white',
+                  borderRadius: '8px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                }}>
+                  <button
+                    onClick={() => setSelectedAlbum(null)}
+                    style={{
+                      padding: '6px 12px',
+                      backgroundColor: '#f5f5f5',
+                      color: '#666',
+                      border: '1px solid #ddd',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                    }}
+                  >
+                    ← 뒤로
+                  </button>
+                  <span style={{ fontSize: '16px', fontWeight: '500' }}>
+                    {selectedAlbum.name}
+                  </span>
+                </div>
+                <AlbumPhotoList
+                  albumId={selectedAlbum.id}
+                  onPhotoClick={setSelectedPhoto}
+                  refreshTrigger={refreshTrigger}
+                  onShowOnMap={handleShowAlbumOnMap}
+                />
+              </div>
+            ) : (
+              <AlbumList
+                onAlbumClick={handleAlbumClick}
+                refreshTrigger={refreshTrigger}
+                selectedAlbumId={selectedAlbum?.id || null}
+              />
+            )}
+          </>
+        )}
       </div>
 
       {/* 오른쪽 지도 */}
