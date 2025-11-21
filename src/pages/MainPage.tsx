@@ -91,25 +91,6 @@ export const MainPage = () => {
     setSelectedAlbum(album);
   };
 
-  const handleShowAlbumOnMap = () => {
-    if (selectedAlbum) {
-      // mapBounds가 없으면 기본 범위로 설정
-      if (!mapBounds) {
-        // 기본 범위: 한국 전체
-        const defaultBounds: MapBounds = {
-          swLat: 33.0,
-          swLng: 124.0,
-          neLat: 38.6,
-          neLng: 132.0,
-        };
-        setMapBounds(defaultBounds);
-        // mapBounds가 설정되면 loadMarkers가 자동으로 호출됨
-        return;
-      }
-      loadMarkers();
-    }
-  };
-
   const handleAddPhotosToAlbum = () => {
     setIsPhotoSelectionModalOpen(true);
   };

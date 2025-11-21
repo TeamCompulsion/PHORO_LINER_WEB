@@ -8,7 +8,6 @@ interface AlbumPhotoListProps {
   albumId: number;
   onPhotoClick?: (photo: Photo | AlbumPhotoItem) => void;
   refreshTrigger?: number;
-  onShowOnMap?: () => void;
   onAddPhotos?: () => void;
 }
 
@@ -16,7 +15,6 @@ export const AlbumPhotoList = ({
   albumId,
   onPhotoClick,
   refreshTrigger,
-  onShowOnMap,
   onAddPhotos,
 }: AlbumPhotoListProps) => {
   const [photos, setPhotos] = useState<AlbumPhotoItem[]>([]);
