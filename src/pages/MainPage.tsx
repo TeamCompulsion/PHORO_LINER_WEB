@@ -340,7 +340,6 @@ export const MainPage = () => {
 
       {/* 오른쪽 지도 */}
       <div style={{ flex: 1, position: 'relative' }}>
-        {console.log('MainPage render - photoMarkers:', photoMarkers.length, photoMarkers)}
         <NaverMap
           photoMarkers={photoMarkers}
           poiMarkers={poiMarkers}
@@ -350,20 +349,6 @@ export const MainPage = () => {
           onSaveLocation={handleSaveLocation}
           onCancelLocationEdit={handleCancelLocationEdit}
         />
-
-        <div style={{
-          position: 'absolute',
-          top: '20px',
-          right: '20px',
-          backgroundColor: 'white',
-          padding: '12px 16px',
-          borderRadius: '8px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-          fontSize: '14px',
-        }}>
-          <div>📷 사진 마커: {photoMarkers?.length || 0}</div>
-          <div>📍 POI 마커: {poiMarkers?.length || 0}</div>
-        </div>
       </div>
 
       {/* 사진 상세 모달 */}
