@@ -2,7 +2,7 @@ import { apiClient } from './client';
 import type {
   PhotosResponse,
   PhotoListParams,
-  MapMarkersResponse,
+  PhotoMarkersResponse,
   PhotoUploadResponse,
   MapBounds,
   PhotoCapturedDateUpdateRequest,
@@ -23,16 +23,14 @@ export const photoApi = {
     return response.data;
   },
 
-  // GET /api/v1/photos/markers - 지도 마커 조회 (앨범 ID 기반)
+  // GET /api/v1/photos/markers?userId={userId} - 지도 마커 조회
   getMapMarkers: async (
     userId: number,
-    albumId: number,
     bounds: MapBounds
-  ): Promise<MapMarkersResponse> => {
-    const response = await apiClient.get<MapMarkersResponse>('/photos/markers', {
+  ): Promise<PhotoMarkersResponse> => {
+    const response = await apiClient.get<PhotoMarkersResponse>('/photos/markers', {
       params: {
         userId,
-        albumId,
         swLat: bounds.swLat,
         swLng: bounds.swLng,
         neLat: bounds.neLat,

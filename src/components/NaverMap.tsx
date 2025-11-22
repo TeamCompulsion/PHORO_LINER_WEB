@@ -95,12 +95,22 @@ export const NaverMap = ({
   useEffect(() => {
     if (!map || !isLoaded || !window.MarkerClustering) return;
 
+    console.log('NaverMap: Rendering markers', { 
+      photoMarkersCount: photoMarkers.length,
+      photoMarkers: photoMarkers 
+    });
+
     clearMarkers();
 
     // 위치 수정 중인 사진은 클러스터링에서 제외 (중앙 핀으로 표시됨)
     const filteredPhotoMarkers = locationEditPhoto
       ? photoMarkers.filter((photo) => photo.id !== locationEditPhoto.id)
       : photoMarkers;
+    
+    console.log('NaverMap: Filtered markers', { 
+      filteredCount: filteredPhotoMarkers.length,
+      filteredMarkers: filteredPhotoMarkers 
+    });
 
     // 클러스터링 모드: filteredPhotoMarkers를 클러스터링으로 관리
     const markers = filteredPhotoMarkers.map((photo) => {

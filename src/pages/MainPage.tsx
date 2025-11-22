@@ -26,19 +26,60 @@ export const MainPage = () => {
   const [isPhotoSelectionModalOpen, setIsPhotoSelectionModalOpen] = useState(false);
 
   const loadMarkers = useCallback(async () => {
-    if (!mapBounds || !selectedAlbum) return;
+    // mapBounds가 없으면 기본 범위(한국 전체) 사용
+    const bounds = mapBounds || {
+      swLat: 33.0,  // 남쪽 위도
+      swLng: 124.0, // 서쪽 경도
+      neLat: 38.6,  // 북쪽 위도
+      neLng: 132.0, // 동쪽 경도
+    };
 
     try {
-      const response = await photoApi.getMapMarkers(
-        config.defaultUserId,
-        selectedAlbum.id,
-        mapBounds
-      );
-
-      setPhotoMarkers(response.innerPhotoMarkers.photoMarkers);
-      setPoiMarkers(response.innerPoiMarkers.markers);
+      if (selectedAlbum) {
+        // 앨범이 선택된 경우: 앨범별 마커 조회
+        const response = await albumApi.getAlbumMarkers(selectedAlbum.id, bounds);
+        console.log('Album markers response:', response);
+        console.log('Album markers items:', response?.albumPhotoMarkers);
+        
+        // AlbumPhotoMarker를 PhotoMarker로 변환 (lat, lng가 있는 경우만)
+        const markers: PhotoMarker[] = (response?.albumPhotoMarkers || [])
+          .filter((marker) => {
+            const hasLatLng = marker.lat != null && marker.lng != null;
+            if (!hasLatLng) {
+              console.warn('Marker missing lat/lng:', marker);
+            }
+            return hasLatLng;
+          })
+          .map((marker) => ({
+            id: marker.id,
+            capturedDt: marker.capturedDt || '', // null인 경우 빈 문자열로 변환
+            filePath: marker.filePath,
+            thumbnailPath: marker.thumbnailPath,
+            lat: marker.lat!,
+            lng: marker.lng!,
+          }));
+        console.log('Converted markers:', markers);
+        console.log('Converted markers count:', markers.length);
+        if (markers.length > 0) {
+          console.log('First marker details:', markers[0]);
+          console.log('First marker lat/lng:', markers[0].lat, markers[0].lng);
+        } else {
+          console.warn('No markers after conversion! Check filter conditions.');
+        }
+        setPhotoMarkers(markers);
+        console.log('setPhotoMarkers called with', markers.length, 'markers');
+        setPoiMarkers([]); // 앨범 마커에는 POI가 없음
+      } else {
+        // 앨범이 선택되지 않은 경우: 전체 사진 마커 조회
+        const response = await photoApi.getMapMarkers(config.defaultUserId, bounds);
+        setPhotoMarkers(response?.photoMarkers || []);
+        setPoiMarkers([]); // 전체 마커에도 POI가 없음 (스펙 변경)
+      }
     } catch (error) {
       console.error('Failed to load markers:', error);
+      // 에러 발생 시 빈 배열로 초기화
+      setPhotoMarkers([]);
+      setPoiMarkers([]);
     }
   }, [mapBounds, selectedAlbum]);
 
@@ -299,6 +340,7 @@ export const MainPage = () => {
 
       {/* 오른쪽 지도 */}
       <div style={{ flex: 1, position: 'relative' }}>
+        {console.log('MainPage render - photoMarkers:', photoMarkers.length, photoMarkers)}
         <NaverMap
           photoMarkers={photoMarkers}
           poiMarkers={poiMarkers}
@@ -319,8 +361,8 @@ export const MainPage = () => {
           boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
           fontSize: '14px',
         }}>
-          <div>📷 사진 마커: {photoMarkers.length}</div>
-          <div>📍 POI 마커: {poiMarkers.length}</div>
+          <div>📷 사진 마커: {photoMarkers?.length || 0}</div>
+          <div>📍 POI 마커: {poiMarkers?.length || 0}</div>
         </div>
       </div>
 

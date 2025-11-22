@@ -43,6 +43,11 @@ export interface MapMarkersResponse {
   innerPoiMarkers: PoiMarkersGroup;
 }
 
+export interface PhotoMarkersResponse {
+  count: number;
+  photoMarkers: PhotoMarker[];
+}
+
 export interface PageInfo {
   totalElements: number;
   totalPages: number;

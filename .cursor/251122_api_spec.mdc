@@ -1,0 +1,87 @@
+---
+alwaysApply: false
+---
+
+## 기능 명세 : API 추가 및 수정
+
+### 신규
+- GET /api/v1/albums/{albumId}/markers
+
+> 요청 바디 
+```
+public record AlbumPhotoMarkersRequest(
+        @Min(0) @Max(90)
+        double swLat,
+
+        @Min(0) @Max(180)
+        double swLng,
+
+        @Min(0) @Max(90)
+        double neLat,
+
+        @Min(0) @Max(180)
+        double neLng
+) {
+}
+```
+
+### 변경 
+- GET /api/v1/albums/{albumId}/photos
+    - pageable 있음
+
+> 응답 바디
+```
+public record AlbumPhotoItemsResponse(
+        List<InnerAlbumPhotoItem> items
+) {
+    public record InnerAlbumPhotoItem(
+            Long id,
+            Long photoId,
+            String fileName,
+            String filePath,
+            String thumbnailPath,
+            LocalDateTime capturedDt
+    ) {
+    }
+}
+```
+
+- GET /api/v1/photos/markers?userId={userId}
+
+> 요청 바디
+```
+public record PhotoMarkersRequest(
+        @NotNull @Min(0)
+        Long userId,
+
+        @Min(0) @Max(90)
+        double swLat,
+
+        @Min(0) @Max(180)
+        double swLng,
+
+        @Min(0) @Max(90)
+        double neLat,
+
+        @Min(0) @Max(180)
+        double neLng
+) {
+}
+```
+> 응답 바디
+```
+public record PhotoMarkersResponse(
+        Integer count,
+        List<InnerPhotoMarker> photoMarkers
+) {
+    public record InnerPhotoMarker(
+            Long id,
+            String filePath,
+            String thumbnailPath,
+            LocalDateTime capturedDt,
+            Double lat,
+            Double lng
+    ) {
+    }
+}
+```

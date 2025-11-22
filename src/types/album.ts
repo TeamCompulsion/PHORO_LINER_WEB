@@ -43,6 +43,7 @@ export interface AlbumPhotoItem {
 
 export interface AlbumPhotoItemsResponse {
   items: AlbumPhotoItem[];
+  pageInfo?: PageInfo;
 }
 
 export interface AlbumItemCreateRequest {
@@ -57,5 +58,25 @@ export interface AlbumListParams {
   userId: number;
   page?: number;
   size?: number;
+}
+
+export interface AlbumPhotoListParams {
+  page?: number;
+  size?: number;
+}
+
+export interface AlbumPhotoMarker {
+  id: number;
+  photoId: number;
+  filePath: string;
+  thumbnailPath?: string;
+  capturedDt: string;
+  lat?: number;
+  lng?: number;
+}
+
+export interface AlbumPhotoMarkersResponse {
+  count: number;
+  albumPhotoMarkers: AlbumPhotoMarker[];
 }
 
