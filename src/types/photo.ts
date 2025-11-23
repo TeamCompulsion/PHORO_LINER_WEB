@@ -106,3 +106,28 @@ export interface PhotoLocationUpdateRequest {
 export interface DeletePhotosRequest {
   ids: number[];
 }
+
+// Presigned URL 관련 타입
+export interface PresignedUrlRequest {
+  originalFileName: string;
+  contentType: string;
+}
+
+export interface PresignedUrlResponse {
+  presignedUrl: string;
+  uploadFileName: string;
+}
+
+// 사진 생성 요청 타입
+export interface CreatePhotoItem {
+  fileName: string;
+  uploadFileName: string;
+  capturedDate?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+}
+
+export interface CreatePhotosRequest {
+  userId: number;
+  photos: CreatePhotoItem[];
+}

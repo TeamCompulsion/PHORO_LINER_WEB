@@ -1,16 +1,18 @@
 import { useState, useRef } from 'react';
 import { photoApi } from '../api/photoApi';
 import { config } from '../config/env';
-import type { PhotoUploadResponse } from '../types/photo';
+import { extractExifData } from '../utils/exif';
+import type { CreatePhotoItem, PresignedUrlRequest } from '../types/photo';
 
 interface PhotoUploadProps {
-  onUploadSuccess?: (response: PhotoUploadResponse) => void;
+  onUploadSuccess?: (uploadedCount: number) => void;
   onUploadError?: (error: Error) => void;
 }
 
 export const PhotoUpload = ({ onUploadSuccess, onUploadError }: PhotoUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -24,22 +26,57 @@ export const PhotoUpload = ({ onUploadSuccess, onUploadError }: PhotoUploadProps
     setUploading(true);
 
     try {
-      const response = await photoApi.uploadPhotos(config.defaultUserId, fileArray);
+      // 1. 파일별 메타데이터 추출
+      setUploadProgress('메타데이터 추출 중...');
+      const metadataList = await Promise.all(
+        fileArray.map((file) => extractExifData(file))
+      );
+
+      // 2. Presigned URL 요청
+      setUploadProgress('업로드 준비 중...');
+      const presignedRequests: PresignedUrlRequest[] = fileArray.map((file) => ({
+        originalFileName: file.name,
+        contentType: file.type || 'image/jpeg',
+      }));
+
+      const presignedResponses = await photoApi.getPresignedUrls(presignedRequests);
+
+      // 3. S3에 직접 업로드
+      setUploadProgress('S3에 업로드 중...');
+      await Promise.all(
+        fileArray.map((file, index) =>
+          photoApi.uploadToS3(presignedResponses[index].presignedUrl, file)
+        )
+      );
+
+      // 4. 백엔드에 메타데이터 저장
+      setUploadProgress('저장 중...');
+      const photos: CreatePhotoItem[] = fileArray.map((file, index) => ({
+        fileName: file.name,
+        uploadFileName: presignedResponses[index].uploadFileName,
+        capturedDate: metadataList[index].capturedDate,
+        latitude: metadataList[index].latitude,
+        longitude: metadataList[index].longitude,
+      }));
+
+      await photoApi.createPhotos({
+        userId: config.defaultUserId,
+        photos,
+      });
+
       setSelectedFiles([]);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
-      onUploadSuccess?.(response);
-      // 성공 메시지는 부드럽게 표시 (alert 대신 콘솔 로그)
-      console.log(`${response.totalUploaded}개의 사진이 업로드되었습니다.`);
+      onUploadSuccess?.(fileArray.length);
+      console.log(`${fileArray.length}개의 사진이 업로드되었습니다.`);
     } catch (error) {
       const err = error instanceof Error ? error : new Error('업로드 실패');
       onUploadError?.(err);
       alert('사진 업로드에 실패했습니다.');
-      // 실패 시 선택된 파일 유지 (재시도 가능하도록)
     } finally {
       setUploading(false);
-      // 업로드 완료 후 input 초기화
+      setUploadProgress('');
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -104,7 +141,7 @@ export const PhotoUpload = ({ onUploadSuccess, onUploadError }: PhotoUploadProps
                 fontWeight: '500',
                 color: '#007AFF',
               }}>
-                업로드 중... ({selectedFiles.length}개)
+                {uploadProgress || `업로드 중... (${selectedFiles.length}개)`}
               </span>
             </>
           ) : (

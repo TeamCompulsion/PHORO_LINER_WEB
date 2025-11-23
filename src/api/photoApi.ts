@@ -3,11 +3,13 @@ import type {
   PhotosResponse,
   PhotoListParams,
   PhotoMarkersResponse,
-  PhotoUploadResponse,
   MapBounds,
   PhotoCapturedDateUpdateRequest,
   PhotoLocationUpdateRequest,
   DeletePhotosRequest,
+  PresignedUrlRequest,
+  PresignedUrlResponse,
+  CreatePhotosRequest,
 } from '../types/photo';
 
 export const photoApi = {
@@ -40,21 +42,31 @@ export const photoApi = {
     return response.data;
   },
 
-  // POST /api/v1/photos - 사진 업로드
-  uploadPhotos: async (userId: number, files: File[]): Promise<PhotoUploadResponse> => {
-    const formData = new FormData();
-    formData.append('userId', userId.toString());
+  // POST /api/v1/photos/presigned-urls - Presigned URL 발급
+  getPresignedUrls: async (
+    requests: PresignedUrlRequest[]
+  ): Promise<PresignedUrlResponse[]> => {
+    const response = await apiClient.post<PresignedUrlResponse[]>(
+      '/photos/presigned-urls',
+      requests
+    );
+    return response.data;
+  },
 
-    files.forEach((file) => {
-      formData.append('files', file);
-    });
-
-    const response = await apiClient.post<PhotoUploadResponse>('/photos', formData, {
+  // S3에 직접 업로드
+  uploadToS3: async (presignedUrl: string, file: File): Promise<void> => {
+    await fetch(presignedUrl, {
+      method: 'PUT',
+      body: file,
       headers: {
-        'Content-Type': 'multipart/form-data',
+        'Content-Type': file.type,
       },
     });
-    return response.data;
+  },
+
+  // POST /api/v1/photos - 사진 메타데이터 저장
+  createPhotos: async (request: CreatePhotosRequest): Promise<void> => {
+    await apiClient.post('/photos', request);
   },
 
   // PATCH /api/v1/photos/{photoId}/captured-date - 촬영 날짜 수정
