@@ -95,19 +95,22 @@ function AppContent() {
   try {
     return (
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route 
-          path="/login/kakao" 
-          element={<KakaoCallbackHandler />} 
-        />
+        {/* 카카오 로그인 임시 비활성화 */}
+        {/* <Route path="/login" element={<LoginPage />} /> */}
+        {/* <Route
+          path="/login/kakao"
+          element={<KakaoCallbackHandler />}
+        /> */}
         <Route
           path="/"
           element={
-            <ProtectedRoute>
-              <MainPage />
-            </ProtectedRoute>
+            // 로그인 비활성화 - ProtectedRoute 제거
+            <MainPage />
           }
         />
+        {/* 로그인 페이지 접근 시 메인으로 리다이렉트 */}
+        <Route path="/login" element={<MainPage />} />
+        <Route path="/login/kakao" element={<MainPage />} />
       </Routes>
     );
   } catch (error) {
