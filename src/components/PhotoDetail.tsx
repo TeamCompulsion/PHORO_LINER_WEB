@@ -14,13 +14,55 @@ type EditMode = 'none' | 'date';
 
 export const PhotoDetail = ({ photo, onClose, onUpdate, onStartLocationEdit }: PhotoDetailProps) => {
   const [editMode, setEditMode] = useState<EditMode>('none');
-  const [capturedDt, setCapturedDt] = useState('');
+  const [capturedDate, setCapturedDate] = useState('');
+  const [capturedTime, setCapturedTime] = useState('');
 
   if (!photo) return null;
 
   const handleEditDate = () => {
     setEditMode('date');
-    setCapturedDt(photo.capturedDt || '');
+    // 기존 날짜가 있으면 파싱하여 초기화
+    if (photo.capturedDt) {
+      try {
+        const dt = new Date(photo.capturedDt);
+        if (!isNaN(dt.getTime())) {
+          const year = dt.getFullYear();
+          const month = String(dt.getMonth() + 1).padStart(2, '0');
+          const day = String(dt.getDate()).padStart(2, '0');
+          const hours = String(dt.getHours()).padStart(2, '0');
+          const minutes = String(dt.getMinutes()).padStart(2, '0');
+          setCapturedDate(`${year}-${month}-${day}`);
+          setCapturedTime(`${hours}:${minutes}`);
+        }
+      } catch {
+        setCapturedDate('');
+        setCapturedTime('');
+      }
+    } else {
+      setCapturedDate('');
+      setCapturedTime('');
+    }
+  };
+
+  const setDateToToday = () => {
+    const today = new Date().toISOString().split('T')[0];
+    setCapturedDate(today);
+  };
+
+  const setDateToYesterday = () => {
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    setCapturedDate(yesterday);
+  };
+
+  const setTimeToNow = () => {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    setCapturedTime(`${hours}:${minutes}`);
+  };
+
+  const setTimeToNoon = () => {
+    setCapturedTime('12:00');
   };
 
   const handleEditLocation = () => {
@@ -30,12 +72,17 @@ export const PhotoDetail = ({ photo, onClose, onUpdate, onStartLocationEdit }: P
 
   const handleSaveDate = async () => {
     try {
-      if (capturedDt && capturedDt !== photo.capturedDt) {
-        await photoApi.updateCapturedDate(photo.id, { capturedDt });
-        alert('촬영 날짜가 업데이트되었습니다.');
-        setEditMode('none');
-        onUpdate?.();
+      if (!capturedDate) {
+        alert('날짜를 선택해주세요.');
+        return;
       }
+      const time = capturedTime || '12:00';
+      const capturedDt = `${capturedDate} ${time}:00`;
+
+      await photoApi.updateCapturedDate(photo.id, { capturedDt });
+      alert('촬영 날짜가 업데이트되었습니다.');
+      setEditMode('none');
+      onUpdate?.();
     } catch (error) {
       console.error(error);
       alert('업데이트에 실패했습니다.');
@@ -375,6 +422,99 @@ export const PhotoDetail = ({ photo, onClose, onUpdate, onStartLocationEdit }: P
             </div>
           ) : (
             <div>
+              {/* 날짜 편집 헤더 */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '16px',
+              }}>
+                <span style={{ fontSize: '24px' }}>📅</span>
+                <h3 style={{
+                  margin: 0,
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  color: '#000000',
+                }}>
+                  촬영 날짜 수정
+                </h3>
+              </div>
+
+              {/* 날짜 입력 */}
+              <div style={{
+                backgroundColor: '#F2F2F7',
+                borderRadius: '12px',
+                padding: '16px',
+                marginBottom: '12px',
+              }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  color: '#8E8E93',
+                  marginBottom: '8px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                }}>
+                  날짜
+                </label>
+                <input
+                  type="date"
+                  value={capturedDate}
+                  onChange={(e) => setCapturedDate(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    border: '0.5px solid #C7C7CC',
+                    borderRadius: '10px',
+                    fontSize: '17px',
+                    backgroundColor: '#FFFFFF',
+                    color: '#000000',
+                    boxSizing: 'border-box',
+                  }}
+                />
+                {/* 빠른 날짜 선택 버튼 */}
+                <div style={{
+                  display: 'flex',
+                  gap: '8px',
+                  marginTop: '10px',
+                }}>
+                  <button
+                    onClick={setDateToToday}
+                    style={{
+                      padding: '8px 16px',
+                      backgroundColor: capturedDate === new Date().toISOString().split('T')[0] ? '#007AFF' : '#E5E5EA',
+                      color: capturedDate === new Date().toISOString().split('T')[0] ? '#FFFFFF' : '#000000',
+                      border: 'none',
+                      borderRadius: '20px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    오늘
+                  </button>
+                  <button
+                    onClick={setDateToYesterday}
+                    style={{
+                      padding: '8px 16px',
+                      backgroundColor: capturedDate === new Date(Date.now() - 86400000).toISOString().split('T')[0] ? '#007AFF' : '#E5E5EA',
+                      color: capturedDate === new Date(Date.now() - 86400000).toISOString().split('T')[0] ? '#FFFFFF' : '#000000',
+                      border: 'none',
+                      borderRadius: '20px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    어제
+                  </button>
+                </div>
+              </div>
+
+              {/* 시간 입력 */}
               <div style={{
                 backgroundColor: '#F2F2F7',
                 borderRadius: '12px',
@@ -390,13 +530,12 @@ export const PhotoDetail = ({ photo, onClose, onUpdate, onStartLocationEdit }: P
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px',
                 }}>
-                  촬영 날짜 (yyyy-MM-dd HH:mm:ss)
+                  시간 (선택사항)
                 </label>
                 <input
-                  type="text"
-                  value={capturedDt}
-                  onChange={(e) => setCapturedDt(e.target.value)}
-                  placeholder="2024-11-18 15:30:00"
+                  type="time"
+                  value={capturedTime}
+                  onChange={(e) => setCapturedTime(e.target.value)}
                   style={{
                     width: '100%',
                     padding: '12px 16px',
@@ -405,44 +544,69 @@ export const PhotoDetail = ({ photo, onClose, onUpdate, onStartLocationEdit }: P
                     fontSize: '17px',
                     backgroundColor: '#FFFFFF',
                     color: '#000000',
+                    boxSizing: 'border-box',
                   }}
                 />
+                {/* 빠른 시간 선택 버튼 */}
+                <div style={{
+                  display: 'flex',
+                  gap: '8px',
+                  marginTop: '10px',
+                }}>
+                  <button
+                    onClick={setTimeToNow}
+                    style={{
+                      padding: '8px 16px',
+                      backgroundColor: '#E5E5EA',
+                      color: '#000000',
+                      border: 'none',
+                      borderRadius: '20px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    현재 시간
+                  </button>
+                  <button
+                    onClick={setTimeToNoon}
+                    style={{
+                      padding: '8px 16px',
+                      backgroundColor: capturedTime === '12:00' ? '#007AFF' : '#E5E5EA',
+                      color: capturedTime === '12:00' ? '#FFFFFF' : '#000000',
+                      border: 'none',
+                      borderRadius: '20px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    정오
+                  </button>
+                </div>
+                <p style={{
+                  margin: '10px 0 0 0',
+                  fontSize: '13px',
+                  color: '#8E8E93',
+                }}>
+                  시간을 입력하지 않으면 정오(12:00)로 설정됩니다
+                </p>
               </div>
 
+              {/* 버튼 그룹 */}
               <div style={{
                 display: 'flex',
                 gap: '12px',
               }}>
                 <button
-                  onClick={handleSaveDate}
-                  style={{
-                    flex: 1,
-                    padding: '14px 20px',
-                    backgroundColor: '#007AFF',
-                    color: '#FFFFFF',
-                    border: 'none',
-                    borderRadius: '12px',
-                    cursor: 'pointer',
-                    fontSize: '17px',
-                    fontWeight: '600',
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#0051D5';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#007AFF';
-                  }}
-                >
-                  저장
-                </button>
-                <button
                   onClick={() => setEditMode('none')}
                   style={{
                     flex: 1,
                     padding: '14px 20px',
-                    backgroundColor: '#8E8E93',
-                    color: '#FFFFFF',
+                    backgroundColor: '#F2F2F7',
+                    color: '#000000',
                     border: 'none',
                     borderRadius: '12px',
                     cursor: 'pointer',
@@ -451,13 +615,41 @@ export const PhotoDetail = ({ photo, onClose, onUpdate, onStartLocationEdit }: P
                     transition: 'all 0.2s',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#6D6D70';
+                    e.currentTarget.style.backgroundColor = '#E5E5EA';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#8E8E93';
+                    e.currentTarget.style.backgroundColor = '#F2F2F7';
                   }}
                 >
                   취소
+                </button>
+                <button
+                  onClick={handleSaveDate}
+                  disabled={!capturedDate}
+                  style={{
+                    flex: 1,
+                    padding: '14px 20px',
+                    backgroundColor: capturedDate ? '#007AFF' : '#C7C7CC',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '12px',
+                    cursor: capturedDate ? 'pointer' : 'not-allowed',
+                    fontSize: '17px',
+                    fontWeight: '600',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (capturedDate) {
+                      e.currentTarget.style.backgroundColor = '#0051D5';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (capturedDate) {
+                      e.currentTarget.style.backgroundColor = '#007AFF';
+                    }
+                  }}
+                >
+                  저장
                 </button>
               </div>
             </div>
