@@ -42,6 +42,7 @@ export const NaverMap = ({
   const animatedPolylineRef = useRef<naver.maps.Polyline | null>(null);
   const arrowMarkersRef = useRef<naver.maps.Marker[]>([]);
   const [currentCenter, setCurrentCenter] = useState<{ lat: number; lng: number } | null>(null);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
   // 마커 클리어
   const clearMarkers = () => {
@@ -456,12 +457,40 @@ export const NaverMap = ({
     };
   }, [map, isLoaded, locationEditPhoto]);
 
-  // focusTarget 변경 시 지도 이동
+  // focusTarget 변경 시 지도 이동 (초기 앨범 진입 시)
   useEffect(() => {
     if (!map || !isLoaded || !focusTarget) return;
 
-    map.setCenter(new window.naver.maps.LatLng(focusTarget.lat, focusTarget.lng));
+    map.panTo(new window.naver.maps.LatLng(focusTarget.lat, focusTarget.lng));
   }, [map, isLoaded, focusTarget]);
+
+  // 앨범 모드에서 photoMarkers 변경 시 인덱스 초기화
+  useEffect(() => {
+    if (showPolyline) {
+      setCurrentPhotoIndex(0);
+    }
+  }, [photoMarkers, showPolyline]);
+
+  // 이전/다음 사진으로 이동
+  const handlePrevPhoto = () => {
+    if (!map || photoMarkers.length === 0) return;
+
+    const newIndex = currentPhotoIndex > 0 ? currentPhotoIndex - 1 : photoMarkers.length - 1;
+    setCurrentPhotoIndex(newIndex);
+
+    const photo = photoMarkers[newIndex];
+    map.panTo(new window.naver.maps.LatLng(photo.lat, photo.lng));
+  };
+
+  const handleNextPhoto = () => {
+    if (!map || photoMarkers.length === 0) return;
+
+    const newIndex = currentPhotoIndex < photoMarkers.length - 1 ? currentPhotoIndex + 1 : 0;
+    setCurrentPhotoIndex(newIndex);
+
+    const photo = photoMarkers[newIndex];
+    map.panTo(new window.naver.maps.LatLng(photo.lat, photo.lng));
+  };
 
   // 컴포넌트 언마운트 시 마커 정리
   useEffect(() => {
@@ -627,6 +656,114 @@ export const NaverMap = ({
             지도를 이동하여 새로운 위치를 선택하세요
           </div>
         </>
+      )}
+
+      {/* 앨범 모드: 이전/다음 네비게이션 버튼 */}
+      {showPolyline && photoMarkers.length > 0 && !locationEditPhoto && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '24px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '16px',
+            backgroundColor: 'white',
+            padding: '12px 20px',
+            borderRadius: '32px',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+            zIndex: 1000,
+          }}
+        >
+          <button
+            onClick={handlePrevPhoto}
+            style={{
+              width: '44px',
+              height: '44px',
+              borderRadius: '50%',
+              backgroundColor: '#007AFF',
+              color: 'white',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '20px',
+              fontWeight: 'bold',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#0056b3';
+              e.currentTarget.style.transform = 'scale(1.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#007AFF';
+              e.currentTarget.style.transform = 'scale(1)';
+            }}
+          >
+            ←
+          </button>
+
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              minWidth: '80px',
+            }}
+          >
+            <span
+              style={{
+                fontSize: '18px',
+                fontWeight: '700',
+                color: '#333',
+              }}
+            >
+              {currentPhotoIndex + 1} / {photoMarkers.length}
+            </span>
+            <span
+              style={{
+                fontSize: '11px',
+                color: '#888',
+                marginTop: '2px',
+              }}
+            >
+              {photoMarkers[currentPhotoIndex]?.capturedDt
+                ? new Date(photoMarkers[currentPhotoIndex].capturedDt).toLocaleDateString('ko-KR')
+                : ''}
+            </span>
+          </div>
+
+          <button
+            onClick={handleNextPhoto}
+            style={{
+              width: '44px',
+              height: '44px',
+              borderRadius: '50%',
+              backgroundColor: '#007AFF',
+              color: 'white',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '20px',
+              fontWeight: 'bold',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#0056b3';
+              e.currentTarget.style.transform = 'scale(1.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#007AFF';
+              e.currentTarget.style.transform = 'scale(1)';
+            }}
+          >
+            →
+          </button>
+        </div>
       )}
     </div>
   );
