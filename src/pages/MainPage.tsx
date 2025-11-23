@@ -317,31 +317,35 @@ export const MainPage = () => {
       <div style={{
         width: isSidebarCollapsed ? '0px' : '400px',
         minWidth: isSidebarCollapsed ? '0px' : '400px',
-        backgroundColor: '#F2F2F7',
+        backgroundColor: '#FFFFFF',
         overflowY: 'auto',
         overflowX: 'hidden',
         padding: '0',
-        boxShadow: isSidebarCollapsed ? 'none' : '2px 0 8px rgba(0,0,0,0.1)',
+        boxShadow: isSidebarCollapsed ? 'none' : '4px 0 24px rgba(0,0,0,0.08)',
         display: 'flex',
         flexDirection: 'column',
-        transition: 'width 0.3s ease, min-width 0.3s ease, box-shadow 0.3s ease',
+        transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
         position: 'relative',
+        zIndex: 10,
       }}>
         {/* 헤더 */}
         <div style={{
-          padding: '20px 20px 16px 20px',
+          padding: '32px 24px 24px 24px',
           backgroundColor: '#FFFFFF',
-          borderBottom: '0.5px solid rgba(0,0,0,0.1)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
+          position: 'sticky',
+          top: 0,
+          zIndex: 20,
         }}>
           <h1 style={{ 
             margin: '0', 
-            fontSize: '28px', 
-            fontWeight: '700',
-            color: '#000000',
-            letterSpacing: '-0.5px',
+            fontSize: '24px', 
+            fontWeight: '800',
+            color: '#1C1C1E',
+            letterSpacing: '-0.02em',
+            fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif',
           }}>
             Photo Liner
           </h1>
@@ -349,29 +353,34 @@ export const MainPage = () => {
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '12px',
+              gap: '8px',
             }}>
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '10px',
+                gap: '8px',
                 padding: '6px 12px',
-                backgroundColor: '#F2F2F7',
-                borderRadius: '20px',
-              }}>
+                backgroundColor: '#F5F5F7',
+                borderRadius: '100px',
+                transition: 'background-color 0.2s ease',
+                cursor: 'default',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E5E5EA'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#F5F5F7'}
+              >
                 <div style={{
-                  width: '28px',
-                  height: '28px',
+                  width: '24px',
+                  height: '24px',
                   borderRadius: '50%',
-                  backgroundColor: '#E5E5EA',
+                  backgroundColor: '#FFFFFF',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  flexShrink: 0,
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
                 }}>
                   <svg 
-                    width="16" 
-                    height="16" 
+                    width="14" 
+                    height="14" 
                     viewBox="0 0 20 20" 
                     fill="none" 
                     xmlns="http://www.w3.org/2000/svg"
@@ -387,68 +396,78 @@ export const MainPage = () => {
                   </svg>
                 </div>
                 <span style={{
-                  fontSize: '15px',
-                  fontWeight: '500',
-                  color: '#000000',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#1C1C1E',
                 }}>
-                  {userName}님
+                  {userName}
                 </span>
               </div>
               <button
                 onClick={handleLogout}
                 style={{
-                  padding: '8px 16px',
-                  backgroundColor: 'transparent',
-                  color: '#8E8E93',
-                  border: '1px solid #E5E5EA',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  fontWeight: '500',
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  backgroundColor: '#F5F5F7',
+                  border: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
+                  color: '#8E8E93',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#F2F2F7';
-                  e.currentTarget.style.color = '#000000';
-                  e.currentTarget.style.borderColor = '#C7C7CC';
+                  e.currentTarget.style.backgroundColor = '#FF3B30';
+                  e.currentTarget.style.color = '#FFFFFF';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.backgroundColor = '#F5F5F7';
                   e.currentTarget.style.color = '#8E8E93';
-                  e.currentTarget.style.borderColor = '#E5E5EA';
                 }}
+                title="로그아웃"
               >
-                로그아웃
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                  <polyline points="16 17 21 12 16 7"></polyline>
+                  <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
               </button>
             </div>
           )}
         </div>
 
-        {/* iOS 스타일 세그먼트 컨트롤 */}
+        {/* 탭 네비게이션 */}
         <div style={{
-          padding: '16px 20px',
-          backgroundColor: '#F2F2F7',
+          padding: '0 24px 24px 24px',
+          backgroundColor: '#FFFFFF',
+          position: 'sticky',
+          top: '88px',
+          zIndex: 20,
         }}>
           <div style={{
             display: 'flex',
-            backgroundColor: '#E5E5EA',
-            borderRadius: '10px',
-            padding: '3px',
-            gap: '3px',
+            backgroundColor: '#F5F5F7',
+            borderRadius: '16px',
+            padding: '4px',
+            position: 'relative',
           }}>
             <button
               onClick={() => handleTabChange('photos')}
               style={{
                 flex: 1,
-                padding: '8px 16px',
+                padding: '10px',
                 backgroundColor: activeTab === 'photos' ? '#FFFFFF' : 'transparent',
                 border: 'none',
-                color: activeTab === 'photos' ? '#007AFF' : '#8E8E93',
+                color: activeTab === 'photos' ? '#000000' : '#8E8E93',
                 cursor: 'pointer',
-                fontSize: '15px',
-                fontWeight: activeTab === 'photos' ? '600' : '400',
-                borderRadius: '8px',
-                transition: 'all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1)',
+                fontSize: '14px',
+                fontWeight: activeTab === 'photos' ? '600' : '500',
+                borderRadius: '12px',
+                boxShadow: activeTab === 'photos' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
+                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                zIndex: 1,
               }}
             >
               사진 보관함
@@ -457,15 +476,17 @@ export const MainPage = () => {
               onClick={() => handleTabChange('albums')}
               style={{
                 flex: 1,
-                padding: '8px 16px',
+                padding: '10px',
                 backgroundColor: activeTab === 'albums' ? '#FFFFFF' : 'transparent',
                 border: 'none',
-                color: activeTab === 'albums' ? '#007AFF' : '#8E8E93',
+                color: activeTab === 'albums' ? '#000000' : '#8E8E93',
                 cursor: 'pointer',
-                fontSize: '15px',
-                fontWeight: activeTab === 'albums' ? '600' : '400',
-                borderRadius: '8px',
-                transition: 'all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1)',
+                fontSize: '14px',
+                fontWeight: activeTab === 'albums' ? '600' : '500',
+                borderRadius: '12px',
+                boxShadow: activeTab === 'albums' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
+                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                zIndex: 1,
               }}
             >
               앨범
@@ -477,46 +498,52 @@ export const MainPage = () => {
         <div style={{
           flex: 1,
           overflowY: 'auto',
-          padding: '0 20px 20px 20px',
+          padding: '0 24px 32px 24px',
         }}>
 
         {activeTab === 'photos' && (
           <>
             {!isAuthenticated() && (
               <div style={{
-                marginBottom: '16px',
-                padding: '20px',
-                backgroundColor: '#FFFFFF',
-                borderRadius: '12px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                marginBottom: '24px',
+                padding: '24px',
+                backgroundColor: '#F5F5F7',
+                borderRadius: '20px',
                 textAlign: 'center',
               }}>
                 <p style={{
                   margin: '0 0 16px 0',
-                  fontSize: '16px',
-                  color: '#000000',
-                  fontWeight: '500',
+                  fontSize: '15px',
+                  color: '#1C1C1E',
+                  fontWeight: '600',
+                  lineHeight: '1.4',
                 }}>
-                  로그인이 필요합니다
+                  로그인하고<br/>
+                  더 많은 기능을 이용해보세요
                 </p>
                 <button
                   onClick={handleLoginClick}
                   style={{
-                    padding: '12px 24px',
+                    width: '100%',
+                    padding: '14px',
                     backgroundColor: '#FEE500',
                     color: '#000000',
                     border: 'none',
-                    borderRadius: '8px',
+                    borderRadius: '14px',
                     fontSize: '15px',
                     fontWeight: '600',
                     cursor: 'pointer',
+                    transition: 'transform 0.1s ease',
                   }}
+                  onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.98)'}
+                  onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
                   카카오 로그인
                 </button>
               </div>
             )}
-            <div style={{ marginBottom: '16px' }}>
+            <div style={{ marginBottom: '24px' }}>
               <PhotoUpload
                 onUploadSuccess={handleUploadSuccess}
                 onUploadError={(error) => console.error(error)}
@@ -539,12 +566,9 @@ export const MainPage = () => {
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '12px',
-                  marginBottom: '16px',
-                  padding: '12px 16px',
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: '12px',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                  gap: '8px',
+                  marginBottom: '24px',
+                  padding: '4px 0',
                 }}>
                   <button
                     onClick={() => {
@@ -552,28 +576,35 @@ export const MainPage = () => {
                       setFocusTarget(null);
                     }}
                     style={{
-                      padding: '8px',
-                      backgroundColor: 'transparent',
-                      color: '#007AFF',
+                      width: '32px',
+                      height: '32px',
+                      padding: '0',
+                      backgroundColor: '#F5F5F7',
+                      color: '#1C1C1E',
                       border: 'none',
-                      borderRadius: '8px',
+                      borderRadius: '50%',
                       cursor: 'pointer',
-                      fontSize: '17px',
-                      fontWeight: '400',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
+                      transition: 'background-color 0.2s ease',
                     }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E5E5EA'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#F5F5F7'}
                   >
-                    ←
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
                   </button>
-                  <span style={{ 
-                    fontSize: '17px', 
-                    fontWeight: '600',
-                    color: '#000000',
+                  <h2 style={{ 
+                    margin: '0',
+                    fontSize: '20px', 
+                    fontWeight: '700',
+                    color: '#1C1C1E',
+                    letterSpacing: '-0.01em',
                   }}>
                     {selectedAlbum.name}
-                  </span>
+                  </h2>
                 </div>
                 <AlbumPhotoList
                   albumId={selectedAlbum.id}
@@ -611,38 +642,46 @@ export const MainPage = () => {
         onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         style={{
           position: 'absolute',
-          left: isSidebarCollapsed ? '12px' : '412px',
-          top: '50%',
-          transform: 'translateY(-50%)',
+          left: isSidebarCollapsed ? '24px' : '424px',
+          top: '48px',
           zIndex: 1000,
-          width: '28px',
-          height: '56px',
+          width: '40px',
+          height: '40px',
           backgroundColor: '#FFFFFF',
           border: 'none',
-          borderRadius: '0 8px 8px 0',
-          boxShadow: '2px 0 8px rgba(0,0,0,0.15)',
+          borderRadius: '50%',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          transition: 'left 0.3s ease',
+          transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+          opacity: 0.9,
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.05)';
+          e.currentTarget.style.opacity = '1';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.opacity = '0.9';
         }}
         title={isSidebarCollapsed ? '사이드바 펼치기' : '사이드바 접기'}
       >
         <svg
-          width="12"
-          height="12"
-          viewBox="0 0 12 12"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
           style={{
             transform: isSidebarCollapsed ? 'rotate(180deg)' : 'rotate(0deg)',
-            transition: 'transform 0.3s ease',
+            transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
           <path
-            d="M8 10L4 6L8 2"
-            stroke="#8E8E93"
+            d="M15 18L9 12L15 6"
+            stroke="#1C1C1E"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
