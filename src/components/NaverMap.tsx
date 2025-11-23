@@ -37,6 +37,8 @@ export const NaverMap = ({
   const markersRef = useRef<naver.maps.Marker[]>([]);
   const clusteringRef = useRef<InstanceType<typeof window.MarkerClustering> | null>(null);
   const polylineRef = useRef<naver.maps.Polyline | null>(null);
+  const animatedPolylineRef = useRef<naver.maps.Polyline | null>(null);
+  const arrowMarkersRef = useRef<naver.maps.Marker[]>([]);
   const [currentCenter, setCurrentCenter] = useState<{ lat: number; lng: number } | null>(null);
 
   // 마커 클리어
@@ -51,6 +53,12 @@ export const NaverMap = ({
       polylineRef.current.setMap(null);
       polylineRef.current = null;
     }
+    if (animatedPolylineRef.current) {
+      animatedPolylineRef.current.setMap(null);
+      animatedPolylineRef.current = null;
+    }
+    arrowMarkersRef.current.forEach((marker) => marker.setMap(null));
+    arrowMarkersRef.current = [];
   };
 
   // 클러스터 아이콘 HTML 생성 (카드 형태)
@@ -189,6 +197,7 @@ export const NaverMap = ({
           size: new window.naver.maps.Size(70, 70),
           anchor: new window.naver.maps.Point(35, 35),
         },
+        zIndex: 5,
       });
 
       // 마커에 photo 데이터 저장
@@ -267,7 +276,7 @@ export const NaverMap = ({
 
     // 마커들을 날짜 순서대로 선으로 연결 (앨범 모드에서만, 백엔드에서 정렬된 순서 그대로 사용)
     if (showPolyline && filteredPhotoMarkers.length > 1 && !locationEditPhoto) {
-      const path = filteredPhotoMarkers.map((photo) => 
+      const path = filteredPhotoMarkers.map((photo) =>
         new window.naver.maps.LatLng(photo.lat, photo.lng)
       );
 
@@ -275,17 +284,89 @@ export const NaverMap = ({
       if (polylineRef.current) {
         polylineRef.current.setMap(null);
       }
+      if (animatedPolylineRef.current) {
+        animatedPolylineRef.current.setMap(null);
+      }
+      arrowMarkersRef.current.forEach((marker) => marker.setMap(null));
+      arrowMarkersRef.current = [];
 
-      // 새로운 polyline 생성
+      // 배경 라인 (두꺼운 반투명 라인)
       polylineRef.current = new window.naver.maps.Polyline({
         map,
         path,
-        strokeColor: '#4285f4',
-        strokeWeight: 3,
-        strokeOpacity: 0.8,
+        strokeColor: '#000000',
+        strokeWeight: 6,
+        strokeOpacity: 0.2,
         strokeStyle: 'solid',
         zIndex: 1,
       });
+
+      // 대시 라인 (검정색)
+      animatedPolylineRef.current = new window.naver.maps.Polyline({
+        map,
+        path,
+        strokeColor: '#000000',
+        strokeWeight: 3,
+        strokeOpacity: 0.9,
+        strokeStyle: 'shortdash',
+        zIndex: 2,
+      });
+
+      // 두 점 사이의 각도 계산 (SVG 화살표가 위쪽을 가리키므로 90도 보정)
+      const calculateAngle = (from: { lat: number; lng: number }, to: { lat: number; lng: number }) => {
+        const dLng = to.lng - from.lng;
+        const dLat = to.lat - from.lat;
+        // Math.atan2(dLat, dLng)는 동쪽=0도, 북쪽=90도 반환
+        // SVG 화살표가 위쪽(북쪽)을 가리키므로 90도를 빼서 보정
+        const angle = 90 - Math.atan2(dLat, dLng) * (180 / Math.PI);
+        return angle;
+      };
+
+      // 두 점 사이의 중간점 계산
+      const getMidpoint = (from: { lat: number; lng: number }, to: { lat: number; lng: number }) => {
+        return {
+          lat: (from.lat + to.lat) / 2,
+          lng: (from.lng + to.lng) / 2,
+        };
+      };
+
+      // 각 구간에 화살표 마커 추가
+      for (let i = 0; i < filteredPhotoMarkers.length - 1; i++) {
+        const from = filteredPhotoMarkers[i];
+        const to = filteredPhotoMarkers[i + 1];
+        const midpoint = getMidpoint(from, to);
+        const angle = calculateAngle(from, to);
+
+        const arrowMarker = new window.naver.maps.Marker({
+          position: new window.naver.maps.LatLng(midpoint.lat, midpoint.lng),
+          map,
+          icon: {
+            content: `
+              <div class="route-arrow" style="
+                width: 28px;
+                height: 28px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transform: rotate(${angle}deg);
+              ">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="11" fill="white" stroke="#333333" stroke-width="2"/>
+                  <path d="M12 6L12 18M12 6L7 11M12 6L17 11"
+                        stroke="#333333"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"/>
+                </svg>
+              </div>
+            `,
+            size: new window.naver.maps.Size(28, 28),
+            anchor: new window.naver.maps.Point(14, 14),
+          },
+          zIndex: 3,
+        });
+        arrowMarkersRef.current.push(arrowMarker);
+      }
     }
 
     // POI 마커 추가 (날짜 범위 외 사진)
