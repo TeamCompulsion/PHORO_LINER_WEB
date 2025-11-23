@@ -117,6 +117,24 @@ export const MainPage = () => {
     loadAlbumPhotos();
   }, [loadAlbumPhotos]);
 
+  // MainPage에서 body와 root 스크롤 비활성화 (지도가 전체 화면을 차지하기 위해)
+  useEffect(() => {
+    const rootElement = document.getElementById('root');
+    document.body.style.overflow = 'hidden';
+    document.body.style.height = '100vh';
+    if (rootElement) {
+      rootElement.style.height = '100vh';
+    }
+    
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.height = '';
+      if (rootElement) {
+        rootElement.style.height = '';
+      }
+    };
+  }, []);
+
   // 사용자 정보 조회
   useEffect(() => {
     const fetchUserInfo = async () => {

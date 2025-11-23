@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { MainPage } from './pages/MainPage';
 import { LoginPage } from './pages/LoginPage';
+import { LandingPage } from './pages/LandingPage';
 import { validateEnv } from './config/env';
 import { isAuthenticated, setAuthToken, setUserInfo } from './utils/auth';
 import './App.css';
@@ -47,7 +48,7 @@ const KakaoCallbackHandler = () => {
       window.history.replaceState(null, '', window.location.pathname);
       
       // 로그인 성공 후 메인 페이지로 이동
-      navigate('/', { replace: true });
+      navigate('/main', { replace: true });
     } else {
       // 토큰이 없고, 이미 인증된 상태가 아니라면 로그인 페이지로 리다이렉트
       // (이미 인증된 경우는 navigate하지 않음 - 이미 메인 페이지에 있을 수 있음)
@@ -101,13 +102,14 @@ function AppContent() {
   try {
     return (
       <Routes>
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route
           path="/login/kakao"
           element={<KakaoCallbackHandler />}
         />
         <Route
-          path="/"
+          path="/main"
           element={
             <ProtectedRoute>
               <MainPage />
