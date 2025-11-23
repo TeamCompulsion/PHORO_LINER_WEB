@@ -201,61 +201,69 @@ export const NaverMap = ({
       return marker;
     });
 
-    // 클러스터 아이콘 배열 (카드 형태)
-    const clusterIcons = [
-      createClusterIcon(80),   // 10개 미만
-      createClusterIcon(90),   // 10~100개
-      createClusterIcon(100),  // 100~200개
-      createClusterIcon(110),  // 200~500개
-      createClusterIcon(120),  // 500개 이상
-    ];
+    // 앨범 모드에서는 클러스터링 비활성화 (모든 마커에 순서 표시)
+    if (showPolyline) {
+      // 마커를 직접 지도에 추가
+      markers.forEach((marker) => {
+        marker.setMap(map);
+      });
+      markersRef.current = markers;
+    } else {
+      // 일반 모드: 클러스터링 사용
+      const clusterIcons = [
+        createClusterIcon(80),   // 10개 미만
+        createClusterIcon(90),   // 10~100개
+        createClusterIcon(100),  // 100~200개
+        createClusterIcon(110),  // 200~500개
+        createClusterIcon(120),  // 500개 이상
+      ];
 
-    // MarkerClustering 초기화
-    clusteringRef.current = new window.MarkerClustering({
-      map,
-      markers,
-      disableClickZoom: false,
-      minClusterSize: 2,
-      maxZoom: 18,
-      gridSize: 120,
-      icons: clusterIcons,
-      indexGenerator: [10, 100, 200, 500, 1000],
-      averageCenter: true,
-      stylingFunction: (clusterMarker: any, count: number, cluster: any) => {
-        const element = clusterMarker.getElement();
-        if (element) {
-          // 개수 업데이트
-          const countElement = element.querySelector('.cluster-count');
-          if (countElement) {
-            countElement.textContent = `${count}개`;
-          }
+      clusteringRef.current = new window.MarkerClustering({
+        map,
+        markers,
+        disableClickZoom: false,
+        minClusterSize: 2,
+        maxZoom: 18,
+        gridSize: 120,
+        icons: clusterIcons,
+        indexGenerator: [10, 100, 200, 500, 1000],
+        averageCenter: true,
+        stylingFunction: (clusterMarker: any, count: number, cluster: any) => {
+          const element = clusterMarker.getElement();
+          if (element) {
+            // 개수 업데이트
+            const countElement = element.querySelector('.cluster-count');
+            if (countElement) {
+              countElement.textContent = `${count}개`;
+            }
 
-          // 대표 이미지 업데이트
-          const imageElement = element.querySelector('.cluster-image');
-          if (imageElement && cluster) {
-            const clusterMembers = cluster.getClusterMember();
-            if (clusterMembers && clusterMembers.length > 0) {
-              // 첫 번째 마커의 사진 데이터 가져오기
-              const firstMarker = clusterMembers[0];
-              const photoData = (firstMarker as any).photoData;
-              if (photoData) {
-                const thumbnailUrl = getImageUrl(photoData.thumbnailPath || photoData.filePath);
-                const originalUrl = getImageUrl(photoData.filePath);
-                // 썸네일 로딩 시도, 실패 시 원본으로 fallback
-                const img = new Image();
-                img.onload = () => {
-                  (imageElement as HTMLElement).style.backgroundImage = `url(${thumbnailUrl})`;
-                };
-                img.onerror = () => {
-                  (imageElement as HTMLElement).style.backgroundImage = `url(${originalUrl})`;
-                };
-                img.src = thumbnailUrl;
+            // 대표 이미지 업데이트
+            const imageElement = element.querySelector('.cluster-image');
+            if (imageElement && cluster) {
+              const clusterMembers = cluster.getClusterMember();
+              if (clusterMembers && clusterMembers.length > 0) {
+                // 첫 번째 마커의 사진 데이터 가져오기
+                const firstMarker = clusterMembers[0];
+                const photoData = (firstMarker as any).photoData;
+                if (photoData) {
+                  const thumbnailUrl = getImageUrl(photoData.thumbnailPath || photoData.filePath);
+                  const originalUrl = getImageUrl(photoData.filePath);
+                  // 썸네일 로딩 시도, 실패 시 원본으로 fallback
+                  const img = new Image();
+                  img.onload = () => {
+                    (imageElement as HTMLElement).style.backgroundImage = `url(${thumbnailUrl})`;
+                  };
+                  img.onerror = () => {
+                    (imageElement as HTMLElement).style.backgroundImage = `url(${originalUrl})`;
+                  };
+                  img.src = thumbnailUrl;
+                }
               }
             }
           }
-        }
-      },
-    });
+        },
+      });
+    }
 
     // 마커들을 날짜 순서대로 선으로 연결 (앨범 모드에서만, 백엔드에서 정렬된 순서 그대로 사용)
     if (showPolyline && filteredPhotoMarkers.length > 1 && !locationEditPhoto) {
