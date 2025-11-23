@@ -27,6 +27,7 @@ export const MainPage = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
   const [isPhotoSelectionModalOpen, setIsPhotoSelectionModalOpen] = useState(false);
+  const [focusTarget, setFocusTarget] = useState<{ lat: number; lng: number } | null>(null);
 
   const handleLoginClick = () => {
     navigate('/login');
@@ -92,6 +93,12 @@ export const MainPage = () => {
       console.log('Converted markers:', markers.length);
       setPhotoMarkers(markers);
       setPoiMarkers([]);
+
+      // 첫 번째 사진 위치로 지도 이동 (capturedDt 기준 정렬된 상태)
+      if (markers.length > 0) {
+        const firstPhoto = markers[0];
+        setFocusTarget({ lat: firstPhoto.lat, lng: firstPhoto.lng });
+      }
     } catch (error) {
       console.error('Failed to load album photos:', error);
       setPhotoMarkers([]);
@@ -187,6 +194,7 @@ export const MainPage = () => {
     setActiveTab(tab);
     if (tab === 'photos') {
       setSelectedAlbum(null);
+      setFocusTarget(null);
     }
   };
 
@@ -392,7 +400,10 @@ export const MainPage = () => {
                   boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                 }}>
                   <button
-                    onClick={() => setSelectedAlbum(null)}
+                    onClick={() => {
+                      setSelectedAlbum(null);
+                      setFocusTarget(null);
+                    }}
                     style={{
                       padding: '8px',
                       backgroundColor: 'transparent',
@@ -459,6 +470,7 @@ export const MainPage = () => {
           onSaveLocation={handleSaveLocation}
           onCancelLocationEdit={handleCancelLocationEdit}
           showPolyline={selectedAlbum !== null}
+          focusTarget={focusTarget}
         />
       </div>
 

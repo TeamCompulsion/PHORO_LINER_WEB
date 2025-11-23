@@ -19,6 +19,7 @@ interface NaverMapProps {
   onSaveLocation?: (lat: number, lng: number) => void;
   onCancelLocationEdit?: () => void;
   showPolyline?: boolean;
+  focusTarget?: { lat: number; lng: number } | null;
 }
 
 export const NaverMap = ({
@@ -32,6 +33,7 @@ export const NaverMap = ({
   onSaveLocation,
   onCancelLocationEdit,
   showPolyline = false,
+  focusTarget,
 }: NaverMapProps) => {
   const { mapRef, map, isLoaded, error } = useNaverMap({ center, zoom });
   const markersRef = useRef<naver.maps.Marker[]>([]);
@@ -453,6 +455,13 @@ export const NaverMap = ({
       setCurrentCenter(null);
     };
   }, [map, isLoaded, locationEditPhoto]);
+
+  // focusTarget 변경 시 지도 이동
+  useEffect(() => {
+    if (!map || !isLoaded || !focusTarget) return;
+
+    map.setCenter(new window.naver.maps.LatLng(focusTarget.lat, focusTarget.lng));
+  }, [map, isLoaded, focusTarget]);
 
   // 컴포넌트 언마운트 시 마커 정리
   useEffect(() => {
