@@ -16,9 +16,20 @@ export const LandingPage = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#FFFFFF',
+      background: 'linear-gradient(to bottom, #FAFBFC 0%, #F5F7FA 100%)',
       fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      position: 'relative',
     }}>
+      {/* 미묘한 배경 패턴 */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.03) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.03) 0%, transparent 50%)',
+        pointerEvents: 'none',
+      }} />
       {/* 헤더 */}
       <header style={{
         position: 'sticky',
@@ -76,6 +87,8 @@ export const LandingPage = () => {
         textAlign: 'center',
         maxWidth: '800px',
         margin: '0 auto',
+        position: 'relative',
+        zIndex: 1,
       }}>
         <h1 style={{
           fontSize: 'clamp(40px, 8vw, 72px)',
@@ -129,7 +142,9 @@ export const LandingPage = () => {
       {/* 주요 기능 섹션 */}
       <section style={{
         padding: '100px 24px',
-        backgroundColor: '#FAFAFA',
+        backgroundColor: '#FFFFFF',
+        position: 'relative',
+        zIndex: 1,
       }}>
         <div style={{
           maxWidth: '1200px',
@@ -163,30 +178,34 @@ export const LandingPage = () => {
             {/* 기능 1 */}
             <div style={{
               backgroundColor: '#FFFFFF',
-              borderRadius: '16px',
+              borderRadius: '20px',
               padding: '40px',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
-              transition: 'all 0.3s',
+              boxShadow: '0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)',
+              border: '1px solid rgba(0, 0, 0, 0.03)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-4px)';
-              e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.1)';
+              e.currentTarget.style.transform = 'translateY(-6px)';
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04)';
+              e.currentTarget.style.borderColor = 'rgba(0, 0, 0, 0.06)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.05)';
+              e.currentTarget.style.boxShadow = '0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)';
+              e.currentTarget.style.borderColor = 'rgba(0, 0, 0, 0.03)';
             }}
             >
               <div style={{
                 width: '64px',
                 height: '64px',
-                backgroundColor: '#F5F5F5',
-                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #F8F9FA 0%, #E9ECEF 100%)',
+                borderRadius: '16px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginBottom: '24px',
                 fontSize: '32px',
+                boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.8), 0 2px 4px rgba(0, 0, 0, 0.04)',
               }}>
                 🗺️
               </div>
@@ -212,30 +231,34 @@ export const LandingPage = () => {
             {/* 기능 2 */}
             <div style={{
               backgroundColor: '#FFFFFF',
-              borderRadius: '16px',
+              borderRadius: '20px',
               padding: '40px',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
-              transition: 'all 0.3s',
+              boxShadow: '0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)',
+              border: '1px solid rgba(0, 0, 0, 0.03)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-4px)';
-              e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.1)';
+              e.currentTarget.style.transform = 'translateY(-6px)';
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04)';
+              e.currentTarget.style.borderColor = 'rgba(0, 0, 0, 0.06)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.05)';
+              e.currentTarget.style.boxShadow = '0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)';
+              e.currentTarget.style.borderColor = 'rgba(0, 0, 0, 0.03)';
             }}
             >
               <div style={{
                 width: '64px',
                 height: '64px',
-                backgroundColor: '#F5F5F5',
-                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #F8F9FA 0%, #E9ECEF 100%)',
+                borderRadius: '16px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginBottom: '24px',
                 fontSize: '32px',
+                boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.8), 0 2px 4px rgba(0, 0, 0, 0.04)',
               }}>
                 📸
               </div>
@@ -264,9 +287,11 @@ export const LandingPage = () => {
       {/* CTA 섹션 */}
       <section style={{
         padding: '100px 24px',
-        backgroundColor: '#000000',
+        background: 'linear-gradient(135deg, #2D3748 0%, #1A202C 100%)',
         color: '#FFFFFF',
         textAlign: 'center',
+        position: 'relative',
+        zIndex: 1,
       }}>
         <div style={{
           maxWidth: '600px',
@@ -318,8 +343,11 @@ export const LandingPage = () => {
       {/* 푸터 */}
       <footer style={{
         padding: '40px 24px',
+        backgroundColor: '#FFFFFF',
         borderTop: '1px solid rgba(0, 0, 0, 0.05)',
         textAlign: 'center',
+        position: 'relative',
+        zIndex: 1,
       }}>
         <div style={{
           maxWidth: '1200px',
@@ -338,7 +366,7 @@ export const LandingPage = () => {
             color: '#999999',
             margin: 0,
           }}>
-            © 2024 Photo Liner. All rights reserved.
+            © 2025 Photo Liner. All rights reserved.
           </p>
         </div>
       </footer>

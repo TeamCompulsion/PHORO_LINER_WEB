@@ -311,17 +311,38 @@ export const MainPage = () => {
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                padding: '8px 12px',
+                gap: '10px',
+                padding: '6px 12px',
                 backgroundColor: '#F2F2F7',
                 borderRadius: '20px',
               }}>
-                <span style={{
-                  fontSize: '18px',
-                  lineHeight: '1',
+                <div style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
+                  backgroundColor: '#E5E5EA',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
                 }}>
-                  👤
-                </span>
+                  <svg 
+                    width="16" 
+                    height="16" 
+                    viewBox="0 0 20 20" 
+                    fill="none" 
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path 
+                      d="M10 10C12.7614 10 15 7.76142 15 5C15 2.23858 12.7614 0 10 0C7.23858 0 5 2.23858 5 5C5 7.76142 7.23858 10 10 10Z" 
+                      fill="#8E8E93"
+                    />
+                    <path 
+                      d="M10 12C5.58172 12 2 13.7909 2 16C2 18.2091 5.58172 20 10 20C14.4183 20 18 18.2091 18 16C18 13.7909 14.4183 12 10 12Z" 
+                      fill="#8E8E93"
+                    />
+                  </svg>
+                </div>
                 <span style={{
                   fontSize: '15px',
                   fontWeight: '500',

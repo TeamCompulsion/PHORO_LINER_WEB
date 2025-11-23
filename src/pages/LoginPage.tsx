@@ -18,11 +18,22 @@ export const LoginPage = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#FFFFFF',
+      background: 'linear-gradient(to bottom, #FAFBFC 0%, #F5F7FA 100%)',
       fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       display: 'flex',
       flexDirection: 'column',
+      position: 'relative',
     }}>
+      {/* 미묘한 배경 패턴 */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundImage: 'radial-gradient(circle at 30% 30%, rgba(102, 126, 234, 0.03) 0%, transparent 50%), radial-gradient(circle at 70% 70%, rgba(118, 75, 162, 0.03) 0%, transparent 50%)',
+        pointerEvents: 'none',
+      }} />
       {/* 헤더 */}
       <header style={{
         padding: '20px 0',
@@ -78,6 +89,8 @@ export const LoginPage = () => {
         alignItems: 'center',
         justifyContent: 'center',
         padding: '40px 24px',
+        position: 'relative',
+        zIndex: 1,
       }}>
         <div style={{
           width: '100%',
@@ -110,10 +123,10 @@ export const LoginPage = () => {
           {/* 로그인 카드 */}
           <div style={{
             backgroundColor: '#FFFFFF',
-            borderRadius: '20px',
+            borderRadius: '24px',
             padding: '48px 40px',
-            boxShadow: '0 4px 24px rgba(0, 0, 0, 0.08)',
-            border: '1px solid rgba(0, 0, 0, 0.05)',
+            boxShadow: '0 4px 24px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04)',
+            border: '1px solid rgba(0, 0, 0, 0.04)',
           }}>
             <h2 style={{
               fontSize: '28px',
