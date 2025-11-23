@@ -336,6 +336,7 @@ export const PhotoList = ({ onPhotoClick, refreshTrigger }: PhotoListProps) => {
 
                     <img
                       src={getImageUrl(photo.thumbnailPath || photo.filePath)}
+                      data-original={getImageUrl(photo.filePath)}
                       alt={`Photo ${photo.id}`}
                       style={{
                         width: '100%',
@@ -343,7 +344,13 @@ export const PhotoList = ({ onPhotoClick, refreshTrigger }: PhotoListProps) => {
                         objectFit: 'cover',
                       }}
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23E5E5EA" width="100" height="100"/%3E%3Ctext fill="%238E8E93" x="50%25" y="50%25" text-anchor="middle" dy=".3em" font-size="12"%3ENo Image%3C/text%3E%3C/svg%3E';
+                        const img = e.target as HTMLImageElement;
+                        const originalSrc = img.dataset.original;
+                        if (originalSrc && img.src !== originalSrc) {
+                          img.src = originalSrc;
+                        } else {
+                          img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23E5E5EA" width="100" height="100"/%3E%3Ctext fill="%238E8E93" x="50%25" y="50%25" text-anchor="middle" dy=".3em" font-size="12"%3ENo Image%3C/text%3E%3C/svg%3E';
+                        }
                       }}
                     />
                   </div>

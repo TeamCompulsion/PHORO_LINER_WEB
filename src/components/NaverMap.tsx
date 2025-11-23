@@ -115,6 +115,7 @@ export const NaverMap = ({
     // 클러스터링 모드: filteredPhotoMarkers를 클러스터링으로 관리
     const markers = filteredPhotoMarkers.map((photo) => {
       const imageUrl = getImageUrl(photo.thumbnailPath || photo.filePath);
+      const originalUrl = getImageUrl(photo.filePath);
 
       const marker = new window.naver.maps.Marker({
         position: new window.naver.maps.LatLng(photo.lat, photo.lng),
@@ -133,13 +134,14 @@ export const NaverMap = ({
             ">
               <img
                 src="${imageUrl}"
+                data-original="${originalUrl}"
                 alt="photo"
                 style="
                   width: 100%;
                   height: 100%;
                   object-fit: cover;
                 "
-                onerror="this.parentElement.innerHTML='<div style=&quot;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background-color:#4285f4;color:white;font-size:36px;&quot;>📷</div>'"
+                onerror="var orig=this.dataset.original;if(orig&&this.src!==orig){this.src=orig}else{this.parentElement.innerHTML='<div style=&quot;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background-color:#4285f4;color:white;font-size:36px;&quot;>📷</div>'}"
               />
             </div>
           `,
@@ -196,8 +198,17 @@ export const NaverMap = ({
               const firstMarker = clusterMembers[0];
               const photoData = (firstMarker as any).photoData;
               if (photoData) {
-                const imageUrl = getImageUrl(photoData.thumbnailPath || photoData.filePath);
-                (imageElement as HTMLElement).style.backgroundImage = `url(${imageUrl})`;
+                const thumbnailUrl = getImageUrl(photoData.thumbnailPath || photoData.filePath);
+                const originalUrl = getImageUrl(photoData.filePath);
+                // 썸네일 로딩 시도, 실패 시 원본으로 fallback
+                const img = new Image();
+                img.onload = () => {
+                  (imageElement as HTMLElement).style.backgroundImage = `url(${thumbnailUrl})`;
+                };
+                img.onerror = () => {
+                  (imageElement as HTMLElement).style.backgroundImage = `url(${originalUrl})`;
+                };
+                img.src = thumbnailUrl;
               }
             }
           }
@@ -392,6 +403,7 @@ export const NaverMap = ({
                     ? locationEditPhoto.thumbnailPath
                     : locationEditPhoto.filePath
                 )}
+                data-original={getImageUrl(locationEditPhoto.filePath)}
                 alt="editing"
                 style={{
                   width: '100%',
@@ -399,7 +411,13 @@ export const NaverMap = ({
                   objectFit: 'cover',
                 }}
                 onError={(e) => {
-                  e.currentTarget.parentElement!.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background-color:#ea4335;color:white;font-size:36px;">📷</div>';
+                  const img = e.currentTarget;
+                  const originalSrc = img.dataset.original;
+                  if (originalSrc && img.src !== originalSrc) {
+                    img.src = originalSrc;
+                  } else {
+                    img.parentElement!.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background-color:#ea4335;color:white;font-size:36px;">📷</div>';
+                  }
                 }}
               />
             </div>

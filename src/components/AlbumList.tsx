@@ -26,7 +26,7 @@ export const AlbumList = ({
   const [editingTitle, setEditingTitle] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [newAlbumTitle, setNewAlbumTitle] = useState('');
-  const [albumThumbnails, setAlbumThumbnails] = useState<{ [key: number]: string }>({});
+  const [albumThumbnails, setAlbumThumbnails] = useState<{ [key: number]: { thumbnail: string; original: string } }>({});
 
   const loadAlbums = async () => {
     setLoading(true);
@@ -43,14 +43,17 @@ export const AlbumList = ({
       setSelectedAlbumIds(new Set());
       
       // 각 앨범의 썸네일 로드
-      const thumbnails: { [key: number]: string } = {};
+      const thumbnails: { [key: number]: { thumbnail: string; original: string } } = {};
       await Promise.all(
         response.albums.map(async (album) => {
           try {
             const photosResponse = await albumApi.getAlbumPhotos(album.id);
             if (photosResponse.items.length > 0) {
               const firstPhoto = photosResponse.items[0];
-              thumbnails[album.id] = getImageUrl(firstPhoto.thumbnailPath || firstPhoto.filePath);
+              thumbnails[album.id] = {
+                thumbnail: getImageUrl(firstPhoto.thumbnailPath || firstPhoto.filePath),
+                original: getImageUrl(firstPhoto.filePath),
+              };
             }
           } catch (err) {
             // 썸네일 로드 실패는 무시
@@ -426,7 +429,8 @@ export const AlbumList = ({
                 >
                   {thumbnail ? (
                     <img
-                      src={thumbnail}
+                      src={thumbnail.thumbnail}
+                      data-original={thumbnail.original}
                       alt={album.name}
                       style={{
                         width: '100%',
@@ -434,7 +438,11 @@ export const AlbumList = ({
                         objectFit: 'cover',
                       }}
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = '';
+                        const img = e.target as HTMLImageElement;
+                        const originalSrc = img.dataset.original;
+                        if (originalSrc && img.src !== originalSrc) {
+                          img.src = originalSrc;
+                        }
                       }}
                     />
                   ) : (
