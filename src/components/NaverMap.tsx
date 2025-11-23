@@ -18,6 +18,7 @@ interface NaverMapProps {
   locationEditPhoto?: Photo | PhotoMarker | null;
   onSaveLocation?: (lat: number, lng: number) => void;
   onCancelLocationEdit?: () => void;
+  showPolyline?: boolean;
 }
 
 export const NaverMap = ({
@@ -30,6 +31,7 @@ export const NaverMap = ({
   locationEditPhoto,
   onSaveLocation,
   onCancelLocationEdit,
+  showPolyline = false,
 }: NaverMapProps) => {
   const { mapRef, map, isLoaded, error } = useNaverMap({ center, zoom });
   const markersRef = useRef<naver.maps.Marker[]>([]);
@@ -216,8 +218,8 @@ export const NaverMap = ({
       },
     });
 
-    // 마커들을 날짜 순서대로 선으로 연결 (백엔드에서 정렬된 순서 그대로 사용)
-    if (filteredPhotoMarkers.length > 1 && !locationEditPhoto) {
+    // 마커들을 날짜 순서대로 선으로 연결 (앨범 모드에서만, 백엔드에서 정렬된 순서 그대로 사용)
+    if (showPolyline && filteredPhotoMarkers.length > 1 && !locationEditPhoto) {
       const path = filteredPhotoMarkers.map((photo) => 
         new window.naver.maps.LatLng(photo.lat, photo.lng)
       );
@@ -271,7 +273,7 @@ export const NaverMap = ({
 
       markersRef.current.push(marker);
     });
-  }, [map, isLoaded, photoMarkers, poiMarkers, onPhotoMarkerClick, locationEditPhoto]);
+  }, [map, isLoaded, photoMarkers, poiMarkers, onPhotoMarkerClick, locationEditPhoto, showPolyline]);
 
   // 지도 범위 변경 이벤트
   useEffect(() => {

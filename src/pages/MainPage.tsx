@@ -439,6 +439,7 @@ export const MainPage = () => {
           locationEditPhoto={locationEditPhoto}
           onSaveLocation={handleSaveLocation}
           onCancelLocationEdit={handleCancelLocationEdit}
+          showPolyline={selectedAlbum !== null}
         />
       </div>
 
