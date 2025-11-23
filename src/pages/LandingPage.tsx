@@ -6,7 +6,8 @@ export const LandingPage = () => {
   const authenticated = isAuthenticated();
 
   const handleGetStarted = () => {
-    if (authenticated) {
+    // 버튼 클릭 시점에 인증 상태를 다시 확인
+    if (isAuthenticated()) {
       navigate('/main');
     } else {
       navigate('/login');

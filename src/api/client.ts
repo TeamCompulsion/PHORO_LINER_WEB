@@ -1,6 +1,6 @@
 import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
 import { config } from '../config/env';
-import { getAuthToken } from '../utils/auth';
+import { getAuthToken, logout } from '../utils/auth';
 
 class ApiClient {
   private client: AxiosInstance;
@@ -51,24 +51,38 @@ class ApiClient {
         return response;
       },
       (error) => {
-        if (import.meta.env.DEV) {
-          console.error('[API Error]', error.response?.data || error.message);
-          if (error.response) {
-            console.error('[API Error Response]', {
-              status: error.response.status,
-              statusText: error.response.statusText,
-              data: error.response.data,
-              headers: error.response.headers,
-            });
+        // 모든 환경에서 API 에러를 콘솔에 표시
+        console.error('[API Error]', error.response?.data || error.message);
+        if (error.response) {
+          console.error('[API Error Response]', {
+            status: error.response.status,
+            statusText: error.response.statusText,
+            data: error.response.data,
+            headers: error.response.headers,
+          });
+
+          // 401 Unauthorized 에러 처리: 인증 토큰이 만료되었거나 유효하지 않은 경우
+          if (error.response.status === 401) {
+            // 로그인 페이지로의 요청은 제외 (무한 리다이렉트 방지)
+            const isLoginPage = window.location.pathname === '/login' || window.location.pathname === '/login/kakao';
+            const isLoginApi = error.config?.url?.includes('/login');
+            
+            if (!isLoginPage && !isLoginApi) {
+              // 로그아웃 처리 (토큰 제거)
+              logout();
+              
+              // 로그인 페이지로 리다이렉트
+              window.location.href = '/login';
+            }
           }
-          if (error.config) {
-            console.error('[API Error Request Config]', {
-              url: error.config.url,
-              method: error.config.method,
-              data: error.config.data,
-              headers: error.config.headers,
-            });
-          }
+        }
+        if (error.config) {
+          console.error('[API Error Request Config]', {
+            url: error.config.url,
+            method: error.config.method,
+            data: error.config.data,
+            headers: error.config.headers,
+          });
         }
         return Promise.reject(error);
       }
