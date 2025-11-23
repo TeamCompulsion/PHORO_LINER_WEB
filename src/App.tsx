@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { MainPage } from './pages/MainPage';
 import { LoginPage } from './pages/LoginPage';
 import { validateEnv } from './config/env';
-import { isAuthenticated, setAuthToken, setRefreshToken, setUserInfo } from './utils/auth';
+import { isAuthenticated, setAuthToken, setUserInfo } from './utils/auth';
 import './App.css';
 
 // 로그인 콜백 처리 컴포넌트
@@ -11,24 +11,27 @@ import './App.css';
 // Fragment는 서버로 전송되지 않고 브라우저 히스토리에도 남지 않아 보안상 더 안전합니다
 const KakaoCallbackHandler = () => {
   const navigate = useNavigate();
+  const processedRef = useRef(false);
 
   useEffect(() => {
+    // React Strict Mode에서 중복 실행 방지
+    if (processedRef.current) {
+      return;
+    }
+
     // URL Fragment에서 토큰 정보 추출
-    // 예: http://localhost:5173/login/kakao#accessToken=xxx&refreshToken=yyy
+    // 예: http://localhost:5173/login/kakao#accessToken=xxx
+    // 백엔드에서 accessToken만 전달하며, refreshToken은 전달하지 않습니다
     const hash = window.location.hash.substring(1); // # 제거
     const params = new URLSearchParams(hash);
-    
     const accessToken = params.get('accessToken');
-    const refreshToken = params.get('refreshToken');
     
     if (accessToken) {
+      // 처리 중복 방지 플래그 설정
+      processedRef.current = true;
+      
       // 서버에서 전달받은 JWT 토큰 저장
       setAuthToken(accessToken);
-      
-      // 리프레시 토큰이 있으면 저장
-      if (refreshToken) {
-        setRefreshToken(refreshToken);
-      }
       
       // 사용자 정보가 별도로 전달되는 경우 (선택사항)
       const userInfo = params.get('userInfo');
@@ -46,10 +49,13 @@ const KakaoCallbackHandler = () => {
       // 로그인 성공 후 메인 페이지로 이동
       navigate('/', { replace: true });
     } else {
-      // 토큰이 없으면 로그인 페이지로 리다이렉트
-      console.error('토큰이 전달되지 않았습니다.');
-      alert('로그인에 실패했습니다. 다시 시도해주세요.');
-      navigate('/login', { replace: true });
+      // 토큰이 없고, 이미 인증된 상태가 아니라면 로그인 페이지로 리다이렉트
+      // (이미 인증된 경우는 navigate하지 않음 - 이미 메인 페이지에 있을 수 있음)
+      if (!isAuthenticated()) {
+        console.error('토큰이 전달되지 않았습니다.');
+        alert('로그인에 실패했습니다. 다시 시도해주세요.');
+        navigate('/login', { replace: true });
+      }
     }
   }, [navigate]);
 
@@ -95,22 +101,19 @@ function AppContent() {
   try {
     return (
       <Routes>
-        {/* 카카오 로그인 임시 비활성화 */}
-        {/* <Route path="/login" element={<LoginPage />} /> */}
-        {/* <Route
+        <Route path="/login" element={<LoginPage />} />
+        <Route
           path="/login/kakao"
           element={<KakaoCallbackHandler />}
-        /> */}
+        />
         <Route
           path="/"
           element={
-            // 로그인 비활성화 - ProtectedRoute 제거
-            <MainPage />
+            <ProtectedRoute>
+              <MainPage />
+            </ProtectedRoute>
           }
         />
-        {/* 로그인 페이지 접근 시 메인으로 리다이렉트 */}
-        <Route path="/login" element={<MainPage />} />
-        <Route path="/login/kakao" element={<MainPage />} />
       </Routes>
     );
   } catch (error) {
