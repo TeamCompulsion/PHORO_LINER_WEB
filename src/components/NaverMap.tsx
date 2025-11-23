@@ -569,7 +569,8 @@ export const NaverMap = ({
       const point = new window.naver.maps.Point(x, y);
       const coord = projection.fromOffsetToCoord(point);
 
-      onPhotoDrop(photoData.id, coord.lat(), coord.lng());
+      const latLng = coord as unknown as { y: number; x: number };
+      onPhotoDrop(photoData.id, latLng.y, latLng.x);
     } catch (error) {
       console.error('Drop handling error:', error);
     }

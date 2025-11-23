@@ -1,5 +1,6 @@
 export interface Photo {
   id: number;
+  fileName?: string;
   filePath: string;
   thumbnailPath?: string;
   capturedDt: string;

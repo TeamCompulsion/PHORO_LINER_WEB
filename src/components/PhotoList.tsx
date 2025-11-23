@@ -82,7 +82,7 @@ export const PhotoList = ({ onPhotoClick, refreshTrigger, onPhotoDragStart, onPh
 
       const photosForSetup: PhotoForMetadataSetup[] = uniquePhotos.map(photo => ({
         id: photo.id,
-        fileName: photo.fileName,
+        fileName: photo.fileName || photo.filePath.split('/').pop() || `photo_${photo.id}`,
         filePath: photo.filePath,
         thumbnailPath: photo.thumbnailPath,
         hasLocation: !!(photo.latitude || photo.longitude || photo.lat || photo.lng),
