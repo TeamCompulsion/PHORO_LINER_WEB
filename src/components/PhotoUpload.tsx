@@ -1,10 +1,10 @@
 import { useState, useRef } from 'react';
 import { photoApi } from '../api/photoApi';
 import { extractExifData } from '../utils/exif';
-import type { CreatePhotoItem, PresignedUrlRequest } from '../types/photo';
+import type { CreatePhotoItem, PresignedUrlRequest, PhotoForMetadataSetup } from '../types/photo';
 
 interface PhotoUploadProps {
-  onUploadSuccess?: (uploadedCount: number) => void;
+  onUploadSuccess?: (uploadedCount: number, photosNeedingSetup: PhotoForMetadataSetup[]) => void;
   onUploadError?: (error: Error) => void;
 }
 
@@ -81,16 +81,78 @@ export const PhotoUpload = ({ onUploadSuccess, onUploadError }: PhotoUploadProps
 
       console.log('[PhotoUpload] Request data:', JSON.stringify({ photos }, null, 2));
 
-      await photoApi.createPhotos({
+      const response = await photoApi.createPhotos({
         photos,
       });
+
+      let photosNeedingSetup: PhotoForMetadataSetup[] = [];
+
+      if (response?.photos && response.photos.length > 0) {
+        // 백엔드가 응답을 반환하면 해당 정보 사용
+        photosNeedingSetup = response.photos
+          .filter((photo) => {
+            const hasLocation = photo.latitude != null && photo.longitude != null;
+            const hasCapturedDate = photo.capturedDt != null && photo.capturedDt !== '';
+            return !hasLocation || !hasCapturedDate;
+          })
+          .map((photo) => ({
+            id: photo.id,
+            fileName: photo.fileName,
+            filePath: photo.filePath,
+            thumbnailPath: photo.thumbnailPath,
+            hasLocation: photo.latitude != null && photo.longitude != null,
+            hasCapturedDate: photo.capturedDt != null && photo.capturedDt !== '',
+          }));
+      } else {
+        // 백엔드가 응답을 반환하지 않으면 API로 메타데이터 없는 사진 조회
+        try {
+          // 위치 없는 사진 조회
+          const noLocationPhotos = await photoApi.getPhotos({ hasLocation: false, size: 100 });
+          // 촬영날짜 없는 사진 조회
+          const noCapturedDatePhotos = await photoApi.getPhotos({ hasCapturedDate: false, size: 100 });
+
+          // 중복 제거하며 병합
+          const photoMap = new Map<number, PhotoForMetadataSetup>();
+
+          noLocationPhotos.photos.forEach((photo) => {
+            photoMap.set(photo.id, {
+              id: photo.id,
+              fileName: photo.filePath.split('/').pop() || '',
+              filePath: photo.filePath,
+              thumbnailPath: photo.thumbnailPath,
+              hasLocation: false,
+              hasCapturedDate: photo.capturedDt != null && photo.capturedDt !== '',
+            });
+          });
+
+          noCapturedDatePhotos.photos.forEach((photo) => {
+            const existing = photoMap.get(photo.id);
+            if (existing) {
+              existing.hasCapturedDate = false;
+            } else {
+              photoMap.set(photo.id, {
+                id: photo.id,
+                fileName: photo.filePath.split('/').pop() || '',
+                filePath: photo.filePath,
+                thumbnailPath: photo.thumbnailPath,
+                hasLocation: photo.latitude != null && photo.longitude != null,
+                hasCapturedDate: false,
+              });
+            }
+          });
+
+          photosNeedingSetup = Array.from(photoMap.values());
+        } catch (fetchError) {
+          console.error('[PhotoUpload] Failed to fetch photos needing setup:', fetchError);
+        }
+      }
 
       setSelectedFiles([]);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
-      onUploadSuccess?.(fileArray.length);
-      console.log(`${fileArray.length}개의 사진이 업로드되었습니다.`);
+      onUploadSuccess?.(fileArray.length, photosNeedingSetup);
+      console.log(`${fileArray.length}개의 사진이 업로드되었습니다. 설정 필요: ${photosNeedingSetup.length}개`);
     } catch (error) {
       const err = error instanceof Error ? error : new Error('업로드 실패');
       onUploadError?.(err);

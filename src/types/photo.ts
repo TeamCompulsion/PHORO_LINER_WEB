@@ -131,3 +131,28 @@ export interface CreatePhotoItem {
 export interface CreatePhotosRequest {
   photos: CreatePhotoItem[];
 }
+
+// 생성된 사진 정보 응답 타입
+export interface CreatedPhotoItem {
+  id: number;
+  fileName: string;
+  filePath: string;
+  thumbnailPath?: string;
+  capturedDt?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+}
+
+export interface CreatePhotosResponse {
+  photos: CreatedPhotoItem[];
+}
+
+// 메타데이터 설정이 필요한 사진 정보
+export interface PhotoForMetadataSetup {
+  id: number;
+  fileName: string;
+  filePath: string;
+  thumbnailPath?: string;
+  hasLocation: boolean;
+  hasCapturedDate: boolean;
+}

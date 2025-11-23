@@ -7,12 +7,13 @@ import { PhotoDetail } from '../components/PhotoDetail';
 import { AlbumList } from '../components/AlbumList';
 import { AlbumPhotoList } from '../components/AlbumPhotoList';
 import { PhotoSelectionModal } from '../components/PhotoSelectionModal';
+import { PhotoMetadataSetupModal } from '../components/PhotoMetadataSetupModal';
 import { photoApi } from '../api/photoApi';
 import { albumApi } from '../api/albumApi';
 import { userApi } from '../api/userApi';
 import { config } from '../config/env';
 import { isAuthenticated, logout } from '../utils/auth';
-import type { PhotoMarker, PoiMarker, Photo, MapBounds } from '../types/photo';
+import type { PhotoMarker, PoiMarker, Photo, MapBounds, PhotoForMetadataSetup } from '../types/photo';
 import type { Album } from '../types/album';
 
 type TabType = 'photos' | 'albums';
@@ -31,6 +32,8 @@ export const MainPage = () => {
   const [focusTarget, setFocusTarget] = useState<{ lat: number; lng: number } | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
   const [isDraggingPhoto, setIsDraggingPhoto] = useState(false);
+  const [photosNeedingSetup, setPhotosNeedingSetup] = useState<PhotoForMetadataSetup[]>([]);
+  const [isMetadataSetupModalOpen, setIsMetadataSetupModalOpen] = useState(false);
 
   const handleLoginClick = () => {
     navigate('/login');
@@ -168,9 +171,27 @@ export const MainPage = () => {
     }
   }, [selectedAlbum, loadAlbumPhotos, loadMarkers]);
 
-  const handleUploadSuccess = () => {
+  const handleUploadSuccess = (uploadedCount: number, photosForSetup: PhotoForMetadataSetup[]) => {
     setRefreshTrigger((prev) => prev + 1);
     reloadPhotos();
+
+    // 메타데이터 설정이 필요한 사진이 있으면 모달 열기
+    if (photosForSetup.length > 0) {
+      setPhotosNeedingSetup(photosForSetup);
+      setIsMetadataSetupModalOpen(true);
+    }
+  };
+
+  const handleMetadataSetupComplete = () => {
+    setIsMetadataSetupModalOpen(false);
+    setPhotosNeedingSetup([]);
+    setRefreshTrigger((prev) => prev + 1);
+    reloadPhotos();
+  };
+
+  const handleMetadataSetupClose = () => {
+    setIsMetadataSetupModalOpen(false);
+    setPhotosNeedingSetup([]);
   };
 
   const handlePhotoUpdate = () => {
@@ -613,6 +634,14 @@ export const MainPage = () => {
           onConfirm={handlePhotoSelectionConfirm}
         />
       )}
+
+      {/* 메타데이터 설정 모달 */}
+      <PhotoMetadataSetupModal
+        isOpen={isMetadataSetupModalOpen}
+        photos={photosNeedingSetup}
+        onClose={handleMetadataSetupClose}
+        onComplete={handleMetadataSetupComplete}
+      />
     </div>
   );
 };

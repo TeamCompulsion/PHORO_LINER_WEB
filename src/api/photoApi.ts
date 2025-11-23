@@ -10,6 +10,7 @@ import type {
   PresignedUrlRequest,
   PresignedUrlResponse,
   CreatePhotosRequest,
+  CreatePhotosResponse,
 } from '../types/photo';
 
 export const photoApi = {
@@ -64,8 +65,10 @@ export const photoApi = {
   },
 
   // POST /api/v1/photos - 사진 메타데이터 저장
-  createPhotos: async (request: CreatePhotosRequest): Promise<void> => {
-    await apiClient.post('/photos', request);
+  createPhotos: async (request: CreatePhotosRequest): Promise<CreatePhotosResponse | null> => {
+    const response = await apiClient.post<CreatePhotosResponse>('/photos', request);
+    // 백엔드가 응답을 반환하지 않는 경우 null 반환
+    return response.data || null;
   },
 
   // PATCH /api/v1/photos/{photoId}/captured-date - 촬영 날짜 수정
