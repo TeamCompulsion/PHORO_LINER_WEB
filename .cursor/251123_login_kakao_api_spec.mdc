@@ -1,0 +1,32 @@
+---
+alwaysApply: false
+---
+
+## 기능 명세 : 카카오 로그인 (oAuth) 추가
+> kakao-login-developers : https://developers.kakao.com/docs/latest/ko/kakaologin/rest-api#before-you-begin-process
+- 메인 페이지는 대시보드 페이지가 보여야 한다.
+- 우상단, 그리고 대시보드 페이지 첫 화면에 로그인 버튼이 각각 존재해야 한다.
+- 로그인 버튼을 누르면 로그인 페이지로 이동한다.
+- 사용자는 "카카오 로그인" 버튼을 눌러서 로그인할 수 있다.
+ - 카카오 로그인 버튼을 누르면 /api/v1/users/login/kakao/authorization API 를 요청한다.
+ - redirect URL 이 응답된다. 
+ - 해당 redirect URL 에서는 사용자에게 카카오 로그인을 요청한다.
+ - 요청이 완료되면 /api/v1/users/login/kakao 로 redirect 응답이 온다.
+ - 성공 응답이 반환되면, 사진-지도 페이지로 이동한다.
+
+### 신규 API
+- GET /api/v1/users/login/kakao/authorization
+
+> 엔드포인트 형태
+```
+@GetMapping("/login/kakao/authorization")
+    public ResponseEntity<Void> authorize() {
+        return ResponseEntity
+                .status(HttpStatus.FOUND)
+                .location(URI.create(kakaoAuthService.getAuthorizationRedirectUrl()))
+                .build();
+    }
+```
+
+- GET /api/v1/users/login/kakao?code={authorizationCode}
+    - redirect용 URL (아마 딱히 구현 안해도 될거같은데)

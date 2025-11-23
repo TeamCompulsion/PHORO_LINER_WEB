@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { NaverMap } from '../components/NaverMap';
 import { PhotoUpload } from '../components/PhotoUpload';
 import { PhotoList } from '../components/PhotoList';
@@ -9,12 +10,14 @@ import { PhotoSelectionModal } from '../components/PhotoSelectionModal';
 import { photoApi } from '../api/photoApi';
 import { albumApi } from '../api/albumApi';
 import { config } from '../config/env';
+import { isAuthenticated, logout } from '../utils/auth';
 import type { PhotoMarker, PoiMarker, Photo, MapBounds } from '../types/photo';
 import type { Album } from '../types/album';
 
 type TabType = 'photos' | 'albums';
 
 export const MainPage = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabType>('photos');
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
   const [photoMarkers, setPhotoMarkers] = useState<PhotoMarker[]>([]);
@@ -24,6 +27,15 @@ export const MainPage = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
   const [isPhotoSelectionModalOpen, setIsPhotoSelectionModalOpen] = useState(false);
+
+  const handleLoginClick = () => {
+    navigate('/login');
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const loadMarkers = useCallback(async () => {
     // mapBounds가 없으면 기본 범위(한국 전체) 사용
@@ -167,7 +179,52 @@ export const MainPage = () => {
       height: '100vh',
       overflow: 'hidden',
       backgroundColor: '#F2F2F7',
+      position: 'relative',
     }}>
+      {/* 우상단 로그인 버튼 */}
+      <div style={{
+        position: 'absolute',
+        top: '20px',
+        right: '20px',
+        zIndex: 1000,
+      }}>
+        {isAuthenticated() ? (
+          <button
+            onClick={handleLogout}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#FFFFFF',
+              color: '#007AFF',
+              border: '1px solid #007AFF',
+              borderRadius: '8px',
+              fontSize: '15px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            }}
+          >
+            로그아웃
+          </button>
+        ) : (
+          <button
+            onClick={handleLoginClick}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#007AFF',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '15px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            }}
+          >
+            로그인
+          </button>
+        )}
+      </div>
+
       {/* 왼쪽 사이드바 */}
       <div style={{
         width: '400px',
@@ -253,6 +310,40 @@ export const MainPage = () => {
 
         {activeTab === 'photos' && (
           <>
+            {!isAuthenticated() && (
+              <div style={{
+                marginBottom: '16px',
+                padding: '20px',
+                backgroundColor: '#FFFFFF',
+                borderRadius: '12px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                textAlign: 'center',
+              }}>
+                <p style={{
+                  margin: '0 0 16px 0',
+                  fontSize: '16px',
+                  color: '#000000',
+                  fontWeight: '500',
+                }}>
+                  로그인이 필요합니다
+                </p>
+                <button
+                  onClick={handleLoginClick}
+                  style={{
+                    padding: '12px 24px',
+                    backgroundColor: '#FEE500',
+                    color: '#000000',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '15px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                  }}
+                >
+                  카카오 로그인
+                </button>
+              </div>
+            )}
             <div style={{ marginBottom: '16px' }}>
               <PhotoUpload
                 onUploadSuccess={handleUploadSuccess}

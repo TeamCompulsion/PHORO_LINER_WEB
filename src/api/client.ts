@@ -1,5 +1,6 @@
-import axios, { type AxiosInstance } from 'axios';
+import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
 import { config } from '../config/env';
+import { getAuthToken } from '../utils/auth';
 
 class ApiClient {
   private client: AxiosInstance;
@@ -15,7 +16,13 @@ class ApiClient {
 
     // Request interceptor
     this.client.interceptors.request.use(
-      (config) => {
+      (config: InternalAxiosRequestConfig) => {
+        // 인증 토큰 추가
+        const token = getAuthToken();
+        if (token && config.headers) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+
         // 요청 전 로깅 (개발 환경에서만)
         if (import.meta.env.DEV) {
           console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`);
