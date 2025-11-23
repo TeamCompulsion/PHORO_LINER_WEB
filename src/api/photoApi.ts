@@ -17,7 +17,6 @@ export const photoApi = {
   getPhotos: async (params: PhotoListParams): Promise<PhotosResponse> => {
     const response = await apiClient.get<PhotosResponse>('/photos', {
       params: {
-        userId: params.userId,
         ...(params.page !== undefined && { page: params.page }),
         ...(params.size !== undefined && { size: params.size }),
       },
@@ -25,14 +24,12 @@ export const photoApi = {
     return response.data;
   },
 
-  // GET /api/v1/photos/markers?userId={userId} - 지도 마커 조회
+  // GET /api/v1/photos/markers - 지도 마커 조회
   getMapMarkers: async (
-    userId: number,
     bounds: MapBounds
   ): Promise<PhotoMarkersResponse> => {
     const response = await apiClient.get<PhotoMarkersResponse>('/photos/markers', {
       params: {
-        userId,
         swLat: bounds.swLat,
         swLng: bounds.swLng,
         neLat: bounds.neLat,

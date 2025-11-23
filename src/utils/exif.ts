@@ -108,7 +108,8 @@ function parseIfd(
         // ASCII 타입
         const valueOffset = dataView.getUint32(entryOffset + 8, littleEndian);
         const dateStr = getString(dataView, tiffOffset + valueOffset, count - 1);
-        // EXIF 형식: "YYYY:MM:DD HH:MM:SS" -> ISO 8601 형식으로 변환 (LocalDateTime)
+        // EXIF 형식: "YYYY:MM:DD HH:MM:SS" -> ISO 8601 형식으로 변환 (yyyy-MM-ddTHH:mm:ss)
+        // LocalDateTime은 ISO 8601 형식을 선호함
         const isoDate = dateStr
           .replace(/^(\d{4}):(\d{2}):(\d{2})/, '$1-$2-$3')
           .replace(' ', 'T');

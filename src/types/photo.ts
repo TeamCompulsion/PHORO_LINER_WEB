@@ -63,7 +63,6 @@ export interface PhotosResponse {
 }
 
 export interface PhotoListParams {
-  userId: number;
   page?: number;
   size?: number;
 }
@@ -128,6 +127,5 @@ export interface CreatePhotoItem {
 }
 
 export interface CreatePhotosRequest {
-  userId: number;
   photos: CreatePhotoItem[];
 }

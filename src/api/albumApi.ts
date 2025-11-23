@@ -16,11 +16,10 @@ export const albumApi = {
     await apiClient.post('/albums', request);
   },
 
-  // GET /api/v1/albums?userId={userId} - 앨범 목록 조회
+  // GET /api/v1/albums - 앨범 목록 조회
   getAlbums: async (params: AlbumListParams): Promise<AlbumsResponse> => {
     const response = await apiClient.get<AlbumsResponse>('/albums', {
       params: {
-        userId: params.userId,
         ...(params.page !== undefined && { page: params.page }),
         ...(params.size !== undefined && { size: params.size }),
       },

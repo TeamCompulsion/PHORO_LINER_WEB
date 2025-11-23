@@ -20,7 +20,6 @@ export interface AlbumsResponse {
 }
 
 export interface AlbumCreateRequest {
-  userId: number;
   title: string;
 }
 
@@ -57,7 +56,6 @@ export interface AlbumItemDeleteRequest {
 }
 
 export interface AlbumListParams {
-  userId: number;
   page?: number;
   size?: number;
 }

@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react';
 import { photoApi } from '../api/photoApi';
-import { config } from '../config/env';
 import { extractExifData } from '../utils/exif';
 import type { CreatePhotoItem, PresignedUrlRequest } from '../types/photo';
 
@@ -51,16 +50,38 @@ export const PhotoUpload = ({ onUploadSuccess, onUploadError }: PhotoUploadProps
 
       // 4. 백엔드에 메타데이터 저장
       setUploadProgress('저장 중...');
-      const photos: CreatePhotoItem[] = fileArray.map((file, index) => ({
-        fileName: file.name,
-        uploadFileName: presignedResponses[index].uploadFileName,
-        capturedDate: metadataList[index].capturedDate,
-        latitude: metadataList[index].latitude,
-        longitude: metadataList[index].longitude,
-      }));
+      const photos: CreatePhotoItem[] = fileArray.map((file, index) => {
+        const metadata = metadataList[index];
+        const photo: CreatePhotoItem = {
+          fileName: file.name,
+          uploadFileName: presignedResponses[index].uploadFileName,
+        };
+        
+        // null이 아닌 값만 추가
+        if (metadata.capturedDate !== null && metadata.capturedDate !== undefined) {
+          photo.capturedDate = metadata.capturedDate;
+        }
+        if (metadata.latitude !== null && metadata.latitude !== undefined) {
+          // 좌표 정밀도 조정 (소수점 6자리) 및 명시적 number 타입 변환
+          const lat = parseFloat(metadata.latitude.toFixed(6));
+          if (!isNaN(lat)) {
+            photo.latitude = lat;
+          }
+        }
+        if (metadata.longitude !== null && metadata.longitude !== undefined) {
+          // 좌표 정밀도 조정 (소수점 6자리) 및 명시적 number 타입 변환
+          const lng = parseFloat(metadata.longitude.toFixed(6));
+          if (!isNaN(lng)) {
+            photo.longitude = lng;
+          }
+        }
+        
+        return photo;
+      });
+
+      console.log('[PhotoUpload] Request data:', JSON.stringify({ photos }, null, 2));
 
       await photoApi.createPhotos({
-        userId: config.defaultUserId,
         photos,
       });
 

@@ -52,7 +52,7 @@ export const MainPage = () => {
     };
 
     try {
-      const response = await photoApi.getMapMarkers(config.defaultUserId, bounds);
+      const response = await photoApi.getMapMarkers(bounds);
       setPhotoMarkers(response?.photoMarkers || []);
       setPoiMarkers([]); // 전체 마커에도 POI가 없음 (스펙 변경)
     } catch (error) {

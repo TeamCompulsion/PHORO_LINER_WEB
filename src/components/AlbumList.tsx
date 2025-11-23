@@ -34,7 +34,6 @@ export const AlbumList = ({
 
     try {
       const response = await albumApi.getAlbums({
-        userId: config.defaultUserId,
         page: currentPage,
         size: PAGE_SIZE,
       });
@@ -155,7 +154,6 @@ export const AlbumList = ({
     setIsCreating(true);
     try {
       await albumApi.createAlbum({
-        userId: config.defaultUserId,
         title: newAlbumTitle.trim(),
       });
       setNewAlbumTitle('');

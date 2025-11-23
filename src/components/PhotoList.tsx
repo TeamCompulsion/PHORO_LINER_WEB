@@ -26,7 +26,6 @@ export const PhotoList = ({ onPhotoClick, refreshTrigger }: PhotoListProps) => {
 
     try {
       const response = await photoApi.getPhotos({
-        userId: config.defaultUserId,
         page: currentPage,
         size: PAGE_SIZE,
       });
