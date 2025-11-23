@@ -7,6 +7,8 @@ import type { Photo } from '../types/photo';
 interface PhotoListProps {
   onPhotoClick?: (photo: Photo) => void;
   refreshTrigger?: number;
+  onPhotoDragStart?: (photo: Photo) => void;
+  onPhotoDragEnd?: () => void;
 }
 
 type FilterValue = boolean | null;
@@ -18,7 +20,7 @@ interface PhotoFilters {
 
 const PAGE_SIZE = 20;
 
-export const PhotoList = ({ onPhotoClick, refreshTrigger }: PhotoListProps) => {
+export const PhotoList = ({ onPhotoClick, refreshTrigger, onPhotoDragStart, onPhotoDragEnd }: PhotoListProps) => {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -390,9 +392,22 @@ export const PhotoList = ({ onPhotoClick, refreshTrigger }: PhotoListProps) => {
                 gridTemplateColumns: 'repeat(4, 1fr)',
                 gap: '2px',
               }}>
-                {datePhotos.map((photo) => (
+                {datePhotos.map((photo) => {
+                  const hasNoLocation = photo.latitude == null && photo.longitude == null && photo.lat == null && photo.lng == null;
+                  return (
                   <div
                     key={photo.id}
+                    draggable={hasNoLocation}
+                    onDragStart={(e) => {
+                      if (hasNoLocation) {
+                        e.dataTransfer.setData('application/json', JSON.stringify(photo));
+                        e.dataTransfer.effectAllowed = 'move';
+                        onPhotoDragStart?.(photo);
+                      }
+                    }}
+                    onDragEnd={() => {
+                      onPhotoDragEnd?.();
+                    }}
                     onClick={(e) => {
                       if (selectedPhotoIds.size > 0) {
                         togglePhotoSelection(photo.id, e);
@@ -405,7 +420,7 @@ export const PhotoList = ({ onPhotoClick, refreshTrigger }: PhotoListProps) => {
                       togglePhotoSelection(photo.id, e);
                     }}
                     style={{
-                      cursor: 'pointer',
+                      cursor: hasNoLocation ? 'grab' : 'pointer',
                       borderRadius: '0',
                       overflow: 'hidden',
                       position: 'relative',
@@ -491,7 +506,8 @@ export const PhotoList = ({ onPhotoClick, refreshTrigger }: PhotoListProps) => {
                       }}
                     />
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ))}

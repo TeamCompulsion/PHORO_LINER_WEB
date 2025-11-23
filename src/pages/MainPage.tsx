@@ -30,6 +30,7 @@ export const MainPage = () => {
   const [isPhotoSelectionModalOpen, setIsPhotoSelectionModalOpen] = useState(false);
   const [focusTarget, setFocusTarget] = useState<{ lat: number; lng: number } | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
+  const [isDraggingPhoto, setIsDraggingPhoto] = useState(false);
 
   const handleLoginClick = () => {
     navigate('/login');
@@ -226,6 +227,22 @@ export const MainPage = () => {
     } catch (error) {
       console.error(error);
       alert('사진 추가에 실패했습니다.');
+    }
+  };
+
+  // 사진 드래그 앤 드롭으로 위치 설정
+  const handlePhotoDrop = async (photoId: number, lat: number, lng: number) => {
+    try {
+      await photoApi.updateLocation(photoId, {
+        latitude: lat,
+        longitude: lng,
+      });
+      alert('사진 위치가 설정되었습니다.');
+      setRefreshTrigger((prev) => prev + 1);
+      reloadPhotos();
+    } catch (error) {
+      console.error(error);
+      alert('위치 설정에 실패했습니다.');
     }
   };
 
@@ -483,6 +500,8 @@ export const MainPage = () => {
             <PhotoList
               onPhotoClick={setSelectedPhoto}
               refreshTrigger={refreshTrigger}
+              onPhotoDragStart={() => setIsDraggingPhoto(true)}
+              onPhotoDragEnd={() => setIsDraggingPhoto(false)}
             />
           </>
         )}
@@ -573,6 +592,8 @@ export const MainPage = () => {
           onCancelLocationEdit={handleCancelLocationEdit}
           showPolyline={selectedAlbum !== null}
           focusTarget={focusTarget}
+          onPhotoDrop={handlePhotoDrop}
+          isDraggingPhoto={isDraggingPhoto}
         />
       </div>
 

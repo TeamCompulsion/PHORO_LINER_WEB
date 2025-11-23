@@ -20,6 +20,8 @@ interface NaverMapProps {
   onCancelLocationEdit?: () => void;
   showPolyline?: boolean;
   focusTarget?: { lat: number; lng: number } | null;
+  onPhotoDrop?: (photoId: number, lat: number, lng: number) => void;
+  isDraggingPhoto?: boolean;
 }
 
 export const NaverMap = ({
@@ -34,6 +36,8 @@ export const NaverMap = ({
   onCancelLocationEdit,
   showPolyline = false,
   focusTarget,
+  onPhotoDrop,
+  isDraggingPhoto = false,
 }: NaverMapProps) => {
   const { mapRef, map, isLoaded, error } = useNaverMap({ center, zoom });
   const markersRef = useRef<naver.maps.Marker[]>([]);
@@ -537,8 +541,46 @@ export const NaverMap = ({
     );
   }
 
+  // 드롭 이벤트 핸들러
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+
+    if (!map || !onPhotoDrop) return;
+
+    try {
+      const photoData = JSON.parse(e.dataTransfer.getData('application/json'));
+      if (!photoData?.id) return;
+
+      // 드롭 위치의 화면 좌표를 지도 좌표로 변환
+      const mapElement = mapRef.current;
+      if (!mapElement) return;
+
+      const rect = mapElement.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      // 화면 좌표를 지도 좌표(위도/경도)로 변환
+      const projection = map.getProjection();
+      const point = new window.naver.maps.Point(x, y);
+      const coord = projection.fromOffsetToCoord(point);
+
+      onPhotoDrop(photoData.id, coord.lat(), coord.lng());
+    } catch (error) {
+      console.error('Drop handling error:', error);
+    }
+  };
+
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+    <div
+      style={{ position: 'relative', width: '100%', height: '100%' }}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
       <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
 
       {/* 위치 수정 모드: 중앙 고정 사진 */}
@@ -763,6 +805,41 @@ export const NaverMap = ({
           >
             →
           </button>
+        </div>
+      )}
+
+      {/* 드래그 중 안내 오버레이 */}
+      {isDraggingPhoto && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 122, 255, 0.1)',
+            border: '4px dashed #007AFF',
+            borderRadius: '0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            pointerEvents: 'none',
+            zIndex: 999,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: 'white',
+              padding: '16px 24px',
+              borderRadius: '12px',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+              fontSize: '16px',
+              fontWeight: '600',
+              color: '#007AFF',
+            }}
+          >
+            여기에 사진을 놓아 위치를 설정하세요
+          </div>
         </div>
       )}
     </div>
