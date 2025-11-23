@@ -9,6 +9,7 @@ import { AlbumPhotoList } from '../components/AlbumPhotoList';
 import { PhotoSelectionModal } from '../components/PhotoSelectionModal';
 import { photoApi } from '../api/photoApi';
 import { albumApi } from '../api/albumApi';
+import { userApi } from '../api/userApi';
 import { config } from '../config/env';
 import { isAuthenticated, logout } from '../utils/auth';
 import type { PhotoMarker, PoiMarker, Photo, MapBounds } from '../types/photo';
@@ -28,6 +29,7 @@ export const MainPage = () => {
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
   const [isPhotoSelectionModalOpen, setIsPhotoSelectionModalOpen] = useState(false);
   const [focusTarget, setFocusTarget] = useState<{ lat: number; lng: number } | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
 
   const handleLoginClick = () => {
     navigate('/login');
@@ -114,6 +116,25 @@ export const MainPage = () => {
   useEffect(() => {
     loadAlbumPhotos();
   }, [loadAlbumPhotos]);
+
+  // 사용자 정보 조회
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      if (isAuthenticated()) {
+        try {
+          const userInfo = await userApi.getUserInfo();
+          setUserName(userInfo.name);
+        } catch (error) {
+          console.error('Failed to load user info:', error);
+          setUserName(null);
+        }
+      } else {
+        setUserName(null);
+      }
+    };
+
+    fetchUserInfo();
+  }, []);
 
   const handleMapBoundsChange = (bounds: MapBounds) => {
     setMapBounds(bounds);
@@ -208,31 +229,14 @@ export const MainPage = () => {
       backgroundColor: '#F2F2F7',
       position: 'relative',
     }}>
-      {/* 우상단 로그인 버튼 */}
-      <div style={{
-        position: 'absolute',
-        top: '20px',
-        right: '20px',
-        zIndex: 1000,
-      }}>
-        {isAuthenticated() ? (
-          <button
-            onClick={handleLogout}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#FFFFFF',
-              color: '#007AFF',
-              border: '1px solid #007AFF',
-              borderRadius: '8px',
-              fontSize: '15px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            }}
-          >
-            로그아웃
-          </button>
-        ) : (
+      {/* 우상단 로그인 버튼 (비로그인 상태일 때만) */}
+      {!isAuthenticated() && (
+        <div style={{
+          position: 'absolute',
+          top: '20px',
+          right: '20px',
+          zIndex: 1000,
+        }}>
           <button
             onClick={handleLoginClick}
             style={{
@@ -249,8 +253,8 @@ export const MainPage = () => {
           >
             로그인
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* 왼쪽 사이드바 */}
       <div style={{
@@ -267,6 +271,9 @@ export const MainPage = () => {
           padding: '20px 20px 16px 20px',
           backgroundColor: '#FFFFFF',
           borderBottom: '0.5px solid rgba(0,0,0,0.1)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
         }}>
           <h1 style={{ 
             margin: '0', 
@@ -277,6 +284,62 @@ export const MainPage = () => {
           }}>
             Photo Liner
           </h1>
+          {userName && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 12px',
+                backgroundColor: '#F2F2F7',
+                borderRadius: '20px',
+              }}>
+                <span style={{
+                  fontSize: '18px',
+                  lineHeight: '1',
+                }}>
+                  👤
+                </span>
+                <span style={{
+                  fontSize: '15px',
+                  fontWeight: '500',
+                  color: '#000000',
+                }}>
+                  {userName}님
+                </span>
+              </div>
+              <button
+                onClick={handleLogout}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: 'transparent',
+                  color: '#8E8E93',
+                  border: '1px solid #E5E5EA',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#F2F2F7';
+                  e.currentTarget.style.color = '#000000';
+                  e.currentTarget.style.borderColor = '#C7C7CC';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = '#8E8E93';
+                  e.currentTarget.style.borderColor = '#E5E5EA';
+                }}
+              >
+                로그아웃
+              </button>
+            </div>
+          )}
         </div>
 
         {/* iOS 스타일 세그먼트 컨트롤 */}

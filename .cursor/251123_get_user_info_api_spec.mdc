@@ -1,0 +1,18 @@
+---
+alwaysApply: false
+---
+
+## 기능 명세 : 유저 정보 화면에 표시하기
+- 로그인한 사용자라면, 유저 정보를 서버로부터 받아와서 이름(name)을 좌상단(Photo Liner 제목 아래)에 표시
+
+### 신규 API
+- GET /api/v1/users/info
+
+> 응답 바디
+```
+public record UserInfoResponse(
+        String name,
+        String email
+) {
+}
+```
