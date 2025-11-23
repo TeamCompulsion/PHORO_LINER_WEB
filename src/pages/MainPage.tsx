@@ -34,6 +34,7 @@ export const MainPage = () => {
   const [isDraggingPhoto, setIsDraggingPhoto] = useState(false);
   const [photosNeedingSetup, setPhotosNeedingSetup] = useState<PhotoForMetadataSetup[]>([]);
   const [isMetadataSetupModalOpen, setIsMetadataSetupModalOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const handleLoginClick = () => {
     navigate('/login');
@@ -314,13 +315,17 @@ export const MainPage = () => {
 
       {/* 왼쪽 사이드바 */}
       <div style={{
-        width: '400px',
+        width: isSidebarCollapsed ? '0px' : '400px',
+        minWidth: isSidebarCollapsed ? '0px' : '400px',
         backgroundColor: '#F2F2F7',
         overflowY: 'auto',
+        overflowX: 'hidden',
         padding: '0',
-        boxShadow: '2px 0 8px rgba(0,0,0,0.1)',
+        boxShadow: isSidebarCollapsed ? 'none' : '2px 0 8px rgba(0,0,0,0.1)',
         display: 'flex',
         flexDirection: 'column',
+        transition: 'width 0.3s ease, min-width 0.3s ease, box-shadow 0.3s ease',
+        position: 'relative',
       }}>
         {/* 헤더 */}
         <div style={{
@@ -600,6 +605,50 @@ export const MainPage = () => {
         )}
         </div>
       </div>
+
+      {/* 사이드바 토글 버튼 */}
+      <button
+        onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        style={{
+          position: 'absolute',
+          left: isSidebarCollapsed ? '12px' : '412px',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          zIndex: 1000,
+          width: '28px',
+          height: '56px',
+          backgroundColor: '#FFFFFF',
+          border: 'none',
+          borderRadius: '0 8px 8px 0',
+          boxShadow: '2px 0 8px rgba(0,0,0,0.15)',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'left 0.3s ease',
+        }}
+        title={isSidebarCollapsed ? '사이드바 펼치기' : '사이드바 접기'}
+      >
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          style={{
+            transform: isSidebarCollapsed ? 'rotate(180deg)' : 'rotate(0deg)',
+            transition: 'transform 0.3s ease',
+          }}
+        >
+          <path
+            d="M8 10L4 6L8 2"
+            stroke="#8E8E93"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
 
       {/* 오른쪽 지도 */}
       <div style={{ flex: 1, position: 'relative' }}>
