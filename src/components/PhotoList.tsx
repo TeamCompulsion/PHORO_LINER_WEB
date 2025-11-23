@@ -9,6 +9,13 @@ interface PhotoListProps {
   refreshTrigger?: number;
 }
 
+type FilterValue = boolean | null;
+
+interface PhotoFilters {
+  hasLocation: FilterValue;
+  hasCapturedDate: FilterValue;
+}
+
 const PAGE_SIZE = 20;
 
 export const PhotoList = ({ onPhotoClick, refreshTrigger }: PhotoListProps) => {
@@ -19,6 +26,10 @@ export const PhotoList = ({ onPhotoClick, refreshTrigger }: PhotoListProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [filters, setFilters] = useState<PhotoFilters>({
+    hasLocation: null,
+    hasCapturedDate: null,
+  });
 
   const loadPhotos = async () => {
     setLoading(true);
@@ -28,6 +39,8 @@ export const PhotoList = ({ onPhotoClick, refreshTrigger }: PhotoListProps) => {
       const response = await photoApi.getPhotos({
         page: currentPage,
         size: PAGE_SIZE,
+        hasLocation: filters.hasLocation,
+        hasCapturedDate: filters.hasCapturedDate,
       });
       setPhotos(response.photos);
       setTotalPages(response.pageInfo.totalPages);
@@ -42,7 +55,22 @@ export const PhotoList = ({ onPhotoClick, refreshTrigger }: PhotoListProps) => {
 
   useEffect(() => {
     loadPhotos();
-  }, [refreshTrigger, currentPage]);
+  }, [refreshTrigger, currentPage, filters]);
+
+  // 필터 변경 시 첫 페이지로 이동
+  const handleFilterChange = (key: keyof PhotoFilters, value: FilterValue) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+    setCurrentPage(0);
+  };
+
+  // 필터 초기화
+  const handleResetFilters = () => {
+    setFilters({ hasLocation: null, hasCapturedDate: null });
+    setCurrentPage(0);
+  };
+
+  // 활성화된 필터 개수
+  const activeFilterCount = [filters.hasLocation, filters.hasCapturedDate].filter(v => v !== null).length;
 
   const togglePhotoSelection = (photoId: number, event?: React.MouseEvent) => {
     if (event) {
@@ -156,6 +184,116 @@ export const PhotoList = ({ onPhotoClick, refreshTrigger }: PhotoListProps) => {
     <div style={{
       backgroundColor: 'transparent',
     }}>
+      {/* 필터 토글 버튼 영역 */}
+      <div style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '8px',
+        marginBottom: '16px',
+      }}>
+        {/* 위치 정보 토글 */}
+        <div style={{
+          display: 'flex',
+          backgroundColor: '#E5E5EA',
+          borderRadius: '8px',
+          padding: '2px',
+        }}>
+          <button
+            onClick={() => handleFilterChange('hasLocation', filters.hasLocation === true ? null : true)}
+            style={{
+              padding: '6px 12px',
+              backgroundColor: filters.hasLocation === true ? '#34C759' : 'transparent',
+              color: filters.hasLocation === true ? '#FFFFFF' : '#8E8E93',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: '500',
+              transition: 'all 0.2s',
+            }}
+          >
+            위치 있음
+          </button>
+          <button
+            onClick={() => handleFilterChange('hasLocation', filters.hasLocation === false ? null : false)}
+            style={{
+              padding: '6px 12px',
+              backgroundColor: filters.hasLocation === false ? '#FF9500' : 'transparent',
+              color: filters.hasLocation === false ? '#FFFFFF' : '#8E8E93',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: '500',
+              transition: 'all 0.2s',
+            }}
+          >
+            위치 없음
+          </button>
+        </div>
+
+        {/* 촬영 날짜 토글 */}
+        <div style={{
+          display: 'flex',
+          backgroundColor: '#E5E5EA',
+          borderRadius: '8px',
+          padding: '2px',
+        }}>
+          <button
+            onClick={() => handleFilterChange('hasCapturedDate', filters.hasCapturedDate === true ? null : true)}
+            style={{
+              padding: '6px 12px',
+              backgroundColor: filters.hasCapturedDate === true ? '#34C759' : 'transparent',
+              color: filters.hasCapturedDate === true ? '#FFFFFF' : '#8E8E93',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: '500',
+              transition: 'all 0.2s',
+            }}
+          >
+            날짜 있음
+          </button>
+          <button
+            onClick={() => handleFilterChange('hasCapturedDate', filters.hasCapturedDate === false ? null : false)}
+            style={{
+              padding: '6px 12px',
+              backgroundColor: filters.hasCapturedDate === false ? '#FF9500' : 'transparent',
+              color: filters.hasCapturedDate === false ? '#FFFFFF' : '#8E8E93',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: '500',
+              transition: 'all 0.2s',
+            }}
+          >
+            날짜 없음
+          </button>
+        </div>
+
+        {/* 필터 초기화 버튼 */}
+        {activeFilterCount > 0 && (
+          <button
+            onClick={handleResetFilters}
+            style={{
+              padding: '6px 12px',
+              backgroundColor: 'transparent',
+              color: '#FF3B30',
+              border: '1px solid #FF3B30',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: '500',
+              transition: 'all 0.2s',
+            }}
+          >
+            초기화
+          </button>
+        )}
+      </div>
+
       {/* Control bar - 선택 모드일 때만 표시 */}
       {selectedPhotoIds.size > 0 && (
         <div style={{

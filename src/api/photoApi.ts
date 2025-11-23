@@ -19,6 +19,8 @@ export const photoApi = {
       params: {
         ...(params.page !== undefined && { page: params.page }),
         ...(params.size !== undefined && { size: params.size }),
+        ...(params.hasLocation !== undefined && params.hasLocation !== null && { hasLocation: params.hasLocation }),
+        ...(params.hasCapturedDate !== undefined && params.hasCapturedDate !== null && { hasCapturedDate: params.hasCapturedDate }),
       },
     });
     return response.data;
@@ -56,7 +58,7 @@ export const photoApi = {
       method: 'PUT',
       body: file,
       headers: {
-        'Content-Type': file.type,
+        'Content-Type': file.type || 'image/jpeg',
       },
     });
   },

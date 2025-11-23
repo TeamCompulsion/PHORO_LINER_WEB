@@ -65,6 +65,8 @@ export interface PhotosResponse {
 export interface PhotoListParams {
   page?: number;
   size?: number;
+  hasLocation?: boolean | null;
+  hasCapturedDate?: boolean | null;
 }
 
 export interface PhotoUploadItem {
