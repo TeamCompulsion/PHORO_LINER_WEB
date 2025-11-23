@@ -39,6 +39,8 @@ export interface AlbumPhotoItem {
   filePath: string;
   thumbnailPath: string;
   capturedDt: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface AlbumPhotoItemsResponse {

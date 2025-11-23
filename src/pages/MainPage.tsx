@@ -37,7 +37,11 @@ export const MainPage = () => {
     navigate('/login');
   };
 
+  // 일반 사진 마커 조회 (지도 기반, 앨범 미선택 시에만)
   const loadMarkers = useCallback(async () => {
+    // 앨범이 선택된 경우 별도 useEffect에서 처리
+    if (selectedAlbum) return;
+
     // mapBounds가 없으면 기본 범위(한국 전체) 사용
     const bounds = mapBounds || {
       swLat: 33.0,  // 남쪽 위도
@@ -47,71 +51,85 @@ export const MainPage = () => {
     };
 
     try {
-      if (selectedAlbum) {
-        // 앨범이 선택된 경우: 앨범별 마커 조회
-        const response = await albumApi.getAlbumMarkers(selectedAlbum.id, bounds);
-        console.log('Album markers response:', response);
-        console.log('Album markers items:', response?.albumPhotoMarkers);
-        
-        // AlbumPhotoMarker를 PhotoMarker로 변환 (lat, lng가 있는 경우만)
-        const markers: PhotoMarker[] = (response?.albumPhotoMarkers || [])
-          .filter((marker) => {
-            const hasLatLng = marker.lat != null && marker.lng != null;
-            if (!hasLatLng) {
-              console.warn('Marker missing lat/lng:', marker);
-            }
-            return hasLatLng;
-          })
-          .map((marker) => ({
-            id: marker.id,
-            capturedDt: marker.capturedDt || '', // null인 경우 빈 문자열로 변환
-            filePath: marker.filePath,
-            thumbnailPath: marker.thumbnailPath,
-            lat: marker.lat!,
-            lng: marker.lng!,
-          }));
-        console.log('Converted markers:', markers);
-        console.log('Converted markers count:', markers.length);
-        if (markers.length > 0) {
-          console.log('First marker details:', markers[0]);
-          console.log('First marker lat/lng:', markers[0].lat, markers[0].lng);
-        } else {
-          console.warn('No markers after conversion! Check filter conditions.');
-        }
-        setPhotoMarkers(markers);
-        console.log('setPhotoMarkers called with', markers.length, 'markers');
-        setPoiMarkers([]); // 앨범 마커에는 POI가 없음
-      } else {
-        // 앨범이 선택되지 않은 경우: 전체 사진 마커 조회
-        const response = await photoApi.getMapMarkers(config.defaultUserId, bounds);
-        setPhotoMarkers(response?.photoMarkers || []);
-        setPoiMarkers([]); // 전체 마커에도 POI가 없음 (스펙 변경)
-      }
+      const response = await photoApi.getMapMarkers(config.defaultUserId, bounds);
+      setPhotoMarkers(response?.photoMarkers || []);
+      setPoiMarkers([]); // 전체 마커에도 POI가 없음 (스펙 변경)
     } catch (error) {
       console.error('Failed to load markers:', error);
-      // 에러 발생 시 빈 배열로 초기화
       setPhotoMarkers([]);
       setPoiMarkers([]);
     }
   }, [mapBounds, selectedAlbum]);
 
+  // 앨범 사진 전체 조회 (앨범 선택 시 한 번만)
+  const loadAlbumPhotos = useCallback(async () => {
+    if (!selectedAlbum) {
+      return;
+    }
+
+    try {
+      const response = await albumApi.getAlbumPhotos(selectedAlbum.id);
+      console.log('Album photos response:', response);
+
+      // AlbumPhotoItem을 PhotoMarker로 변환 (latitude, longitude가 있는 경우만)
+      const markers: PhotoMarker[] = (response?.items || [])
+        .filter((item) => {
+          const hasLatLng = item.latitude != null && item.longitude != null;
+          if (!hasLatLng) {
+            console.warn('Photo missing latitude/longitude:', item);
+          }
+          return hasLatLng;
+        })
+        .map((item) => ({
+          id: item.photoId,
+          capturedDt: item.capturedDt || '',
+          filePath: item.filePath,
+          thumbnailPath: item.thumbnailPath,
+          lat: item.latitude!,
+          lng: item.longitude!,
+        }));
+
+      console.log('Converted markers:', markers.length);
+      setPhotoMarkers(markers);
+      setPoiMarkers([]);
+    } catch (error) {
+      console.error('Failed to load album photos:', error);
+      setPhotoMarkers([]);
+      setPoiMarkers([]);
+    }
+  }, [selectedAlbum]);
+
   useEffect(() => {
     loadMarkers();
   }, [loadMarkers]);
+
+  // 앨범 선택 시 사진 전체 조회
+  useEffect(() => {
+    loadAlbumPhotos();
+  }, [loadAlbumPhotos]);
 
   const handleMapBoundsChange = (bounds: MapBounds) => {
     setMapBounds(bounds);
   };
 
+  // 사진 다시 조회 (앨범/일반 모드에 따라)
+  const reloadPhotos = useCallback(() => {
+    if (selectedAlbum) {
+      loadAlbumPhotos();
+    } else {
+      loadMarkers();
+    }
+  }, [selectedAlbum, loadAlbumPhotos, loadMarkers]);
+
   const handleUploadSuccess = () => {
     setRefreshTrigger((prev) => prev + 1);
-    loadMarkers();
+    reloadPhotos();
   };
 
   const handlePhotoUpdate = () => {
     setSelectedPhoto(null);
     setRefreshTrigger((prev) => prev + 1);
-    loadMarkers();
+    reloadPhotos();
   };
 
   const handleStartLocationEdit = (photo: Photo | PhotoMarker) => {
@@ -133,7 +151,7 @@ export const MainPage = () => {
       alert('위치 정보가 업데이트되었습니다.');
       setLocationEditPhoto(null);
       setRefreshTrigger((prev) => prev + 1);
-      loadMarkers();
+      reloadPhotos();
     } catch (error) {
       console.error(error);
       alert('업데이트에 실패했습니다.');
@@ -158,6 +176,7 @@ export const MainPage = () => {
       alert(`${selectedPhotoIds.length}개의 사진이 앨범에 추가되었습니다.`);
       setIsPhotoSelectionModalOpen(false);
       setRefreshTrigger((prev) => prev + 1);
+      reloadPhotos();
     } catch (error) {
       console.error(error);
       alert('사진 추가에 실패했습니다.');

@@ -8,10 +8,7 @@ import type {
   AlbumItemCreateRequest,
   AlbumItemDeleteRequest,
   AlbumListParams,
-  AlbumPhotoListParams,
-  AlbumPhotoMarkersResponse,
 } from '../types/album';
-import type { MapBounds } from '../types/photo';
 
 export const albumApi = {
   // POST /api/v1/albums - 앨범 생성
@@ -46,38 +43,12 @@ export const albumApi = {
     });
   },
 
-  // GET /api/v1/albums/{albumId}/photos - 앨범 내 사진 목록 조회
+  // GET /api/v1/albums/{albumId}/photos - 앨범 내 사진 전체 조회
   getAlbumPhotos: async (
-    albumId: number,
-    params?: AlbumPhotoListParams
+    albumId: number
   ): Promise<AlbumPhotoItemsResponse> => {
     const response = await apiClient.get<AlbumPhotoItemsResponse>(
-      `/albums/${albumId}/photos`,
-      {
-        params: {
-          ...(params?.page !== undefined && { page: params.page }),
-          ...(params?.size !== undefined && { size: params.size }),
-        },
-      }
-    );
-    return response.data;
-  },
-
-  // GET /api/v1/albums/{albumId}/markers - 앨범 내 사진 마커 조회
-  getAlbumMarkers: async (
-    albumId: number,
-    bounds: MapBounds
-  ): Promise<AlbumPhotoMarkersResponse> => {
-    const response = await apiClient.get<AlbumPhotoMarkersResponse>(
-      `/albums/${albumId}/markers`,
-      {
-        params: {
-          swLat: bounds.swLat,
-          swLng: bounds.swLng,
-          neLat: bounds.neLat,
-          neLng: bounds.neLng,
-        },
-      }
+      `/albums/${albumId}/photos`
     );
     return response.data;
   },
