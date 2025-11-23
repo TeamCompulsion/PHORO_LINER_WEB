@@ -115,9 +115,41 @@ export const NaverMap = ({
     });
 
     // 클러스터링 모드: filteredPhotoMarkers를 클러스터링으로 관리
-    const markers = filteredPhotoMarkers.map((photo) => {
+    const markers = filteredPhotoMarkers.map((photo, index) => {
       const imageUrl = getImageUrl(photo.thumbnailPath || photo.filePath);
       const originalUrl = getImageUrl(photo.filePath);
+
+      // 앨범 모드에서 순서 표시
+      const orderNumber = index + 1;
+      const isFirst = index === 0;
+      const isLast = index === filteredPhotoMarkers.length - 1;
+
+      // 시작점/끝점 색상 구분
+      const badgeColor = isFirst ? '#34a853' : isLast ? '#ea4335' : '#4285f4';
+      const badgeLabel = isFirst ? 'S' : isLast ? 'E' : orderNumber.toString();
+
+      // 순서 뱃지 HTML (앨범 모드에서만 표시)
+      const orderBadgeHtml = showPolyline ? `
+        <div style="
+          position: absolute;
+          top: -6px;
+          left: -6px;
+          min-width: 22px;
+          height: 22px;
+          border-radius: 11px;
+          background-color: ${badgeColor};
+          color: white;
+          font-size: 11px;
+          font-weight: bold;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 2px solid white;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+          padding: 0 4px;
+          z-index: 10;
+        ">${badgeLabel}</div>
+      ` : '';
 
       const marker = new window.naver.maps.Marker({
         position: new window.naver.maps.LatLng(photo.lat, photo.lng),
@@ -125,30 +157,37 @@ export const NaverMap = ({
         icon: {
           content: `
             <div style="
-              width: 90px;
-              height: 90px;
-              border-radius: 8px;
-              overflow: hidden;
-              border: 3px solid white;
-              box-shadow: 0 3px 8px rgba(0,0,0,0.35);
-              cursor: pointer;
-              background-color: #f0f0f0;
+              position: relative;
+              width: 70px;
+              height: 70px;
             ">
-              <img
-                src="${imageUrl}"
-                data-original="${originalUrl}"
-                alt="photo"
-                style="
-                  width: 100%;
-                  height: 100%;
-                  object-fit: cover;
-                "
-                onerror="var orig=this.dataset.original;if(orig&&this.src!==orig){this.src=orig}else{this.parentElement.innerHTML='<div style=&quot;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background-color:#4285f4;color:white;font-size:36px;&quot;>📷</div>'}"
-              />
+              ${orderBadgeHtml}
+              <div style="
+                width: 70px;
+                height: 70px;
+                border-radius: 6px;
+                overflow: hidden;
+                border: 2px solid ${showPolyline ? badgeColor : 'white'};
+                box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+                cursor: pointer;
+                background-color: #f0f0f0;
+              ">
+                <img
+                  src="${imageUrl}"
+                  data-original="${originalUrl}"
+                  alt="photo"
+                  style="
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                  "
+                  onerror="var orig=this.dataset.original;if(orig&&this.src!==orig){this.src=orig}else{this.parentElement.innerHTML='<div style=&quot;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background-color:#4285f4;color:white;font-size:28px;&quot;>📷</div>'}"
+                />
+              </div>
             </div>
           `,
-          size: new window.naver.maps.Size(90, 90),
-          anchor: new window.naver.maps.Point(45, 45),
+          size: new window.naver.maps.Size(70, 70),
+          anchor: new window.naver.maps.Point(35, 35),
         },
       });
 
